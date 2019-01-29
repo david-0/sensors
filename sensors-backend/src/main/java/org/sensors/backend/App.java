@@ -2,6 +2,7 @@ package org.sensors.backend;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.time.StopWatch;
@@ -22,7 +23,9 @@ public class App {
 
 		logger.info("start init ...");
 		StopWatch watch = StopWatch.createStarted();
-		AsyncCombiner.allOf(sensor1::init, sensor2::init).get();
+		Future<Void> allOf = AsyncCombiner.allOf(sensor1::init, sensor2::init);
+		logger.info("... in the middle ...");
+		allOf.get();
 		watch.stop();
 		logger.info("... init finished");
 		System.out.printf("Init duration: %d ms %n", watch.getTime(TimeUnit.MILLISECONDS));
