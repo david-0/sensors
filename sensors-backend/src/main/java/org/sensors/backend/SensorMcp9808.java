@@ -2,10 +2,15 @@ package org.sensors.backend;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 
 public class SensorMcp9808 {
+	
+	private static final Logger log = LoggerFactory.getLogger(SensorMcp9808.class); 
 	private I2CBus bus;
 	private I2CDevice device;
 	private int address;
@@ -27,8 +32,11 @@ public class SensorMcp9808 {
 			throw new IllegalStateException("Sensor already initialized");
 		}
 		try {
+			log.info("before init: {}", address);
 			device = bus.getDevice(address);
+			log.info("after init: {}", address);
 			Thread.sleep(300);
+			log.info("after sleep: {}", address);
 		} catch (IOException | InterruptedException e) {
 			throw new RuntimeException("init failed", e);
 		}
