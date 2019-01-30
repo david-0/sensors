@@ -16,7 +16,7 @@ public class Controller {
 	private I2CBus bus;
 	private SensorMcp9808 sensor1;
 	private SensorMcp9808 sensor2;
-	private KafkaProducer<Float, Float> producer;
+	private KafkaProducer<String, String> producer;
 	private ScheduledExecutorService executor;
 
 	public Controller(I2CBus bus) {
@@ -39,8 +39,8 @@ public class Controller {
 				TimeUnit.MILLISECONDS);
 	}
 
-	public ProducerRecord<Float, Float> createRecord(double value) {
-		Float temp = Float.valueOf(Double.valueOf(value).floatValue());
+	public ProducerRecord<String, String> createRecord(double value) {
+		String temp = Float.toString(Double.valueOf(value).floatValue());
 		return new ProducerRecord<>("sensor1", temp);
 	}
 
