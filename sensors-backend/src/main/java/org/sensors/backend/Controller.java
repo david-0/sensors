@@ -35,7 +35,8 @@ public class Controller {
 	}
 
 	public void run() {
-		executor.schedule(() -> producer.send(createRecord(sensor1.readTemperature())), 1000, TimeUnit.MILLISECONDS);
+		executor.scheduleAtFixedRate(() -> producer.send(createRecord(sensor1.readTemperature())), 1000, 1000,
+				TimeUnit.MILLISECONDS);
 	}
 
 	public ProducerRecord<Float, Float> createRecord(double value) {

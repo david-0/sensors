@@ -2,15 +2,11 @@ package org.sensors.backend;
 
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 
 public class SensorMcp9808 {
 
-	private static final Logger log = LoggerFactory.getLogger(SensorMcp9808.class);
 	private I2CBus bus;
 	private I2CDevice device;
 	private int address;
@@ -40,11 +36,15 @@ public class SensorMcp9808 {
 		initialized = true;
 	}
 
-	public double readTemperature() throws IOException {
+	public double readTemperature()  {
 		// Read 2 bytes of data from address 0x05(05)
 		// temp msb, temp lsb
 		byte[] data = new byte[2];
-		device.read(0x05, data, 0, 2);
+		try {
+			device.read(0x05, data, 0, 2);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 
 		// Convert the data to 13-bits
 		int temp = ((data[0] & 0x1F) * 256 + (data[1] & 0xFF));
