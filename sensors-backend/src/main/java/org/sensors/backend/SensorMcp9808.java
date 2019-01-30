@@ -9,8 +9,8 @@ import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 
 public class SensorMcp9808 {
-	
-	private static final Logger log = LoggerFactory.getLogger(SensorMcp9808.class); 
+
+	private static final Logger log = LoggerFactory.getLogger(SensorMcp9808.class);
 	private I2CBus bus;
 	private I2CDevice device;
 	private int address;
@@ -22,24 +22,22 @@ public class SensorMcp9808 {
 		this.address = address;
 		this.description = description;
 	}
-	
+
 	public String getDescription() {
 		return description;
 	}
 
 	public void init() {
 		if (initialized) {
-			throw new IllegalStateException("Sensor already initialized");
+			throw new IllegalStateException("Sensor '" + description + "' already initialized");
 		}
 		try {
-			log.info("before init: {}", address);
 			device = bus.getDevice(address);
-			log.info("after init: {}", address);
 			Thread.sleep(300);
-			log.info("after sleep: {}", address);
 		} catch (IOException | InterruptedException e) {
 			throw new RuntimeException("init failed", e);
 		}
+		initialized = true;
 	}
 
 	public double readTemperature() throws IOException {
