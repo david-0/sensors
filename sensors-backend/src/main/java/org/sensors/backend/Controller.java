@@ -1,18 +1,22 @@
 package org.sensors.backend;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pi4j.io.i2c.I2CBus;
 
 public class Controller {
@@ -25,6 +29,10 @@ public class Controller {
 	private static final String SENSOR2_TOPIC = "sensor2";
 	private static final String SENSOR2_ID = "S2";
 
+	private static final String SETTING_TOPIC = "settings";
+	private static final String SENSOR_READING_INTERVAL_TOPIC = "sensorReadingIntervals";
+	private static final String BUTTON_EVENT_TOPIC = "buttonEvents";
+
 	private boolean initialized;
 	private final I2CBus bus;
 	private final KafkaProducer<String, String> producer;
@@ -35,9 +43,13 @@ public class Controller {
 
 	private Future<?> runFuture;
 
-	public Controller(I2CBus bus, KafkaProducer<String, String> producer) {
+	private KafkaConsumer<String, String> consumer;
+
+	public Controller(I2CBus bus, KafkaProducer<String, String> producer,
+			KafkaConsumer<String, String> consumer) {
 		this.bus = bus;
 		this.producer = producer;
+		this.consumer = consumer;
 		store = new EventStore();
 	}
 
@@ -57,6 +69,8 @@ public class Controller {
 				ZonedDateTime.now().plus(Duration.ofMillis(300)),
 				Duration.ofMillis(10_000), new Execution(producer,
 						SENSOR2_TOPIC, sensor2::readTemperature));
+		consumer.subscribe(Arrays.asList(SETTING_TOPIC,
+				SENSOR_READING_INTERVAL_TOPIC, BUTTON_EVENT_TOPIC));
 	}
 
 	public void run() {
@@ -74,13 +88,42 @@ public class Controller {
 					logger.info("Exec id={} --> topic={}", event.getId(),
 							event.getExec().getTopic());
 				} else {
-					logger.info("Wait {} ns", waitDuration.toNanos());
-					TimeUnit.NANOSECONDS.sleep(waitDuration.toNanos());
+					logger.info("Wait for messages for max. {} ns",
+							waitDuration.toNanos());
+					consumeRecords(waitDuration);
 				}
 			}
-		} catch (JsonProcessingException | InterruptedException e) {
+		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private void consumeRecords(Duration waitDuration) throws IOException {
+		ConsumerRecords<String, String> records = consumer.poll(waitDuration);
+		for (ConsumerRecord<String, String> record : records) {
+			if (SETTING_TOPIC.equals(record.topic())) {
+				updateSettings(record.key(), record.value());
+			} else if (SENSOR_READING_INTERVAL_TOPIC.equals(record.topic())) {
+				updateSensorReadingInterval(record.key(), record.value());
+			} else if (BUTTON_EVENT_TOPIC.equals(record.topic())) {
+				updateButtonEvent(record.key(), record.value());
+			}
+		}
+	}
+
+	private void updateButtonEvent(String key, String value) {
+		// TODO Auto-generated method stub
+	}
+
+	private void updateSensorReadingInterval(String key, String value)
+			throws IOException {
+		Integer interval = new ObjectMapper().readValue(value, Integer.class);
+		store.updateInterval(key, Duration.ofMillis(interval.intValue()),
+				ZonedDateTime.now());
+	}
+
+	private void updateSettings(String key, String value) {
+		// TODO Auto-generated method stub
 	}
 
 	private Duration getNextWaitDuration() {

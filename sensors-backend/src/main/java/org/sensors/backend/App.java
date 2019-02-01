@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +21,24 @@ public class App {
 		I2CBus bus = I2CFactory.getInstance(I2CBus.BUS_1);
 
 		Controller controller = new Controller(bus,
-				new KafkaProducer<>(App.createProducerProperties()));
+				new KafkaProducer<>(App.createProducerProperties()),
+				new KafkaConsumer<>(createConsumerProperties()));
 		controller.init();
 		controller.run();
 		logger.info("controller started");
+	}
+
+	private static Properties createConsumerProperties() {
+		Properties props = new Properties();
+		props.put("bootstrap.servers", "localhost:9092");
+		props.put("group.id", "test");
+		props.put("enable.auto.commit", "true");
+		props.put("auto.commit.interval.ms", "1000");
+		props.put("key.deserializer",
+				"org.apache.kafka.common.serialization.StringDeserializer");
+		props.put("value.deserializer",
+				"org.apache.kafka.common.serialization.StringDeserializer");
+		return props;
 	}
 
 	private static Properties createProducerProperties() {
