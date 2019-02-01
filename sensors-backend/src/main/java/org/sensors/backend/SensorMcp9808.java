@@ -36,7 +36,7 @@ public class SensorMcp9808 {
 		initialized = true;
 	}
 
-	public double readTemperature()  {
+	public Float readTemperature()  {
 		// Read 2 bytes of data from address 0x05(05)
 		// temp msb, temp lsb
 		byte[] data = new byte[2];
@@ -51,6 +51,6 @@ public class SensorMcp9808 {
 		if (temp > 4095) {
 			temp -= 8192;
 		}
-		return temp * 0.0625;
+		return Float.valueOf(temp * 0.0625f);
 	}
 }
