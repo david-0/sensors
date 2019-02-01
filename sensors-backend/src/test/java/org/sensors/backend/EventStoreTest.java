@@ -2,7 +2,6 @@ package org.sensors.backend;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 import java.time.Duration;
 import java.time.ZoneId;
@@ -54,6 +53,34 @@ public class EventStoreTest {
 		assertThat(store.getNextEvent().getExecutionTme(), is(execTime));
 		assertThat(store.getNextExecutionTime(),
 				is(execTime.plus(Duration.ofMillis(100))));
+	}
+	
+	@Test
+	public void testUpdateInterval_whenNewExecutionTimeInTheFuture() {
+		EventStore store = new EventStore();
+		ZonedDateTime execTime = ZonedDateTime.of(2019, 01, 2, 7, 56, 32, 0,
+				ZoneId.of("GMT"));
+		store.addEvent("id", execTime, Duration.ofMillis(100),
+				new Execution(null, "topic", () -> 10));
+		store.getNextEvent();
+		ZonedDateTime now = execTime.plus(Duration.ofMillis(50));
+		store.updateInterval("id", Duration.ofMillis(200), now);
+		assertThat(store.getNextExecutionTime(), is(now.plus(Duration.ofMillis(150))));
+		assertThat(store.getNextEvent().getIntervall(), is(Duration.ofMillis(200)));
+	}
+	
+	@Test
+	public void testUpdateInterval_whenNewExecutionTimeInThePast() {
+		EventStore store = new EventStore();
+		ZonedDateTime execTime = ZonedDateTime.of(2019, 01, 2, 7, 56, 32, 0,
+				ZoneId.of("GMT"));
+		store.addEvent("id", execTime, Duration.ofMillis(200),
+				new Execution(null, "topic", () -> 10));
+		store.getNextEvent();
+		ZonedDateTime now = execTime.plus(Duration.ofMillis(150));
+		store.updateInterval("id", Duration.ofMillis(100), now);
+		assertThat(store.getNextExecutionTime(), is(now));
+		assertThat(store.getNextEvent().getIntervall(), is(Duration.ofMillis(100)));
 	}
 
 	@Test

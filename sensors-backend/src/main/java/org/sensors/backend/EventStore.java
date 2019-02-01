@@ -21,9 +21,30 @@ public class EventStore {
 	public boolean hasNextEvent() {
 		return !events.isEmpty();
 	}
-	
+
 	public int size() {
 		return events.size();
+	}
+
+	public void updateInterval(String id, Duration newInterval,
+			ZonedDateTime now) {
+		Event event = lookup.get(id);
+		if (!removeEvent(id)) {
+			throw new RuntimeException(
+					"Event could not be removed from events.");
+		}
+		addEvent(id, computeNewExecTime(newInterval, event, now), newInterval,
+				event.getExec());
+	}
+
+	private ZonedDateTime computeNewExecTime(Duration newInterval, Event event,
+			ZonedDateTime now) {
+		ZonedDateTime newExecTime = event.getExecutionTme()
+				.minus(event.getIntervall()).plus(newInterval);
+		if (newExecTime.isBefore(now)) {
+			newExecTime = now;
+		}
+		return newExecTime;
 	}
 
 	public ZonedDateTime getNextExecutionTime() {
