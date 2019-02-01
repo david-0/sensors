@@ -86,7 +86,8 @@ public class Controller {
 	private Duration getNextWaitDuration() {
 		Duration maxWaitDuration = Duration.ofSeconds(1);
 		if (store.hasNextEvent()) {
-			Duration toNextExec = store.getDurationToNextEvent();
+			Duration toNextExec = Duration.between(ZonedDateTime.now(),
+					store.getNextExecutionTime());
 			if (toNextExec.minus(maxWaitDuration).isNegative()) {
 				return toNextExec;
 			}

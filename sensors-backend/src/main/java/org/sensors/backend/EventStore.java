@@ -21,9 +21,13 @@ public class EventStore {
 	public boolean hasNextEvent() {
 		return !events.isEmpty();
 	}
+	
+	public int size() {
+		return events.size();
+	}
 
-	public Duration getDurationToNextEvent() {
-		return Duration.between(ZonedDateTime.now(), events.first().getExecutionTme());
+	public ZonedDateTime getNextExecutionTime() {
+		return events.first().getExecutionTme();
 	}
 
 	public boolean removeEvent(String id) {
