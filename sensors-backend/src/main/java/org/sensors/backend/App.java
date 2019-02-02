@@ -1,5 +1,6 @@
 package org.sensors.backend;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
@@ -13,12 +14,22 @@ import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CFactory;
 import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
 
+import de.pi3g.pi.ws2812.WS2812;
+
 public class App {
 	private static final Logger logger = LoggerFactory.getLogger(App.class);
 
 	public static void main(String[] args) throws UnsupportedBusNumberException,
 			IOException, InterruptedException, ExecutionException {
 		I2CBus bus = I2CFactory.getInstance(I2CBus.BUS_1);
+		
+		WS2812.get().init(8); //init a chain of 64 LEDs
+		WS2812.get().clear();    
+		WS2812.get().setPixelColor(0, Color.RED); //sets the color of the fist LED to red
+		WS2812.get().setPixelColor(1, Color.GREEN); //sets the color of the fist LED to red
+		WS2812.get().setPixelColor(2, Color.BLUE); //sets the color of the fist LED to red
+		WS2812.get().setPixelColor(3, Color.WHITE); //sets the color of the fist LED to red
+		WS2812.get().show();
 
 		Controller controller = new Controller(bus,
 				new KafkaProducer<>(App.createProducerProperties()),
