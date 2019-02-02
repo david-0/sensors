@@ -62,12 +62,12 @@ public class Controller {
 		sensor1.init();
 		store.addEvent(SENSOR1_ID,
 				ZonedDateTime.now().plus(Duration.ofMillis(300)),
-				Duration.ofMillis(10_000), new Execution(producer,
+				Duration.ofMillis(1_200), new Execution(producer,
 						SENSOR1_TOPIC, sensor1::readTemperature));
 		sensor2.init();
 		store.addEvent(SENSOR2_ID,
 				ZonedDateTime.now().plus(Duration.ofMillis(300)),
-				Duration.ofMillis(10_000), new Execution(producer,
+				Duration.ofMillis(1_200), new Execution(producer,
 						SENSOR2_TOPIC, sensor2::readTemperature));
 		consumer.subscribe(Arrays.asList(SETTING_TOPIC,
 				SENSOR_READING_INTERVAL_TOPIC, BUTTON_EVENT_TOPIC));
