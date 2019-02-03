@@ -29,8 +29,7 @@ public class SensorMcp9808 {
 		}
 		try {
 			device = bus.getDevice(address);
-			Thread.sleep(300);
-		} catch (IOException | InterruptedException e) {
+		} catch (IOException e) {
 			throw new RuntimeException("init failed", e);
 		}
 		initialized = true;
