@@ -23,7 +23,7 @@ public class SensorOneWireTemp {
 		List<W1Device> w1Devices = w1Master
 				.getDevices(TmpDS18B20DeviceType.FAMILY_CODE);
 		for (W1Device device : w1Devices) {
-			if (device.getId().equals(sensorId)) {
+			if (device.getId().trim().equals(sensorId)) {
 				this.device = device;
 				this.tempSensor = (TemperatureSensor) device;
 			}
