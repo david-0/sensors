@@ -105,6 +105,8 @@ public class App {
 
 		});
 
+		final GpioPinDigitalOutput wlanLED = gpio
+				.provisionDigitalOutputPin(RaspiPin.GPIO_02);
 		final GpioPinDigitalInput wlanButton = gpio.provisionDigitalInputPin(
 				RaspiPin.GPIO_00, PinPullResistance.PULL_DOWN);
 		wlanButton.setShutdownOptions(true);
@@ -114,8 +116,6 @@ public class App {
 					GpioPinDigitalStateChangeEvent event) {
 				System.out.println(" --> GPIO PIN (WLAN Button) STATE CHANGE: "
 						+ event.getPin() + " = " + event.getState());
-				GpioPinDigitalOutput wlanLED = gpio
-						.provisionDigitalOutputPin(RaspiPin.GPIO_02);
 				wlanOn = !wlanOn;
 				wlanLED.setState(wlanOn);
 			}
