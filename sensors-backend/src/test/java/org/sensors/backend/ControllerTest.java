@@ -65,7 +65,7 @@ public class ControllerTest {
 	@Test
 	public void testRun() throws InterruptedException, ExecutionException,
 			JsonProcessingException {
-		Controller controller = new Controller(bus, producer, consumer);
+		Controller controller = new Controller(producer, consumer);
 		controller.init();
 		controller.run();
 		Thread.sleep(10000);

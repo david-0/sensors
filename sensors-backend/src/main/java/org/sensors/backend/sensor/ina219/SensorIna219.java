@@ -1,4 +1,4 @@
-package org.sensors.backend.ina219;
+package org.sensors.backend.sensor.ina219;
 
 import java.io.IOException;
 

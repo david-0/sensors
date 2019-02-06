@@ -11,8 +11,7 @@ public class EventStore {
 	private SortedSet<Event> events = new TreeSet<Event>();
 	private Map<String, Event> lookup = new HashMap<>();
 
-	public void addEvent(String id, ZonedDateTime executionTime,
-			Duration interval, Execution exec) {
+	public void addEvent(String id, ZonedDateTime executionTime, Duration interval, Execution exec) {
 		Event event = new Event(id, executionTime, interval, exec);
 		events.add(event);
 		lookup.put(id, event);
@@ -26,21 +25,20 @@ public class EventStore {
 		return events.size();
 	}
 
-	public void updateInterval(String id, Duration newInterval,
-			ZonedDateTime now) {
+	public boolean updateInterval(String id, Duration newInterval, ZonedDateTime now) {
 		Event event = lookup.get(id);
-		if (!removeEvent(id)) {
-			throw new RuntimeException(
-					"Event could not be removed from events.");
+		if (event==null) {
+			return false;
 		}
-		addEvent(id, computeNewExecTime(newInterval, event, now), newInterval,
-				event.getExec());
+		if (!removeEvent(id)) {
+			throw new RuntimeException("Event could not be removed from events.");
+		}
+		addEvent(id, computeNewExecTime(newInterval, event, now), newInterval, event.getExec());
+		return true;
 	}
 
-	private ZonedDateTime computeNewExecTime(Duration newInterval, Event event,
-			ZonedDateTime now) {
-		ZonedDateTime newExecTime = event.getExecutionTme()
-				.minus(event.getIntervall()).plus(newInterval);
+	private ZonedDateTime computeNewExecTime(Duration newInterval, Event event, ZonedDateTime now) {
+		ZonedDateTime newExecTime = event.getExecutionTme().minus(event.getIntervall()).plus(newInterval);
 		if (newExecTime.isBefore(now)) {
 			newExecTime = now;
 		}
@@ -59,20 +57,21 @@ public class EventStore {
 	public Event getNextEvent() {
 		Event first = events.first();
 		if (!events.remove(first)) {
-			throw new RuntimeException(
-					"Event could not be removed from events.");
+			throw new RuntimeException("Event could not be removed from events.");
 		}
 		if (lookup.remove(first.getId()) == null) {
-			throw new RuntimeException(
-					"Event could not be removed from lookup.");
+			throw new RuntimeException("Event could not be removed from lookup.");
 		}
 		if (first.getIntervall() != null) {
-			Event event = new Event(first.getId(),
-					first.getExecutionTme().plus(first.getIntervall()),
+			Event event = new Event(first.getId(), first.getExecutionTme().plus(first.getIntervall()),
 					first.getIntervall(), first.getExec());
 			events.add(event);
 			lookup.put(first.getId(), event);
 		}
 		return first;
+	}
+
+	public boolean hasId(String id) {
+		return lookup.containsKey(id);
 	}
 }

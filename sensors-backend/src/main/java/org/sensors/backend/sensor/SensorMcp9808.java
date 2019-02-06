@@ -1,4 +1,4 @@
-package org.sensors.backend;
+package org.sensors.backend.sensor;
 
 import java.io.IOException;
 

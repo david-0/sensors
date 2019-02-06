@@ -1,4 +1,4 @@
-package org.sensors.backend.ina219;
+package org.sensors.backend.sensor.ina219;
 
 /**
  * Enum for the Bus and Shunt ADC Resolution/Averaging settings.

@@ -1,4 +1,4 @@
-package org.sensors.backend.ina219;
+package org.sensors.backend.sensor.ina219;
 
 /**
  * Enum for the PGA gain and range setting options.

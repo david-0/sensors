@@ -1,4 +1,4 @@
-package org.sensors.backend.ina219;
+package org.sensors.backend.sensor.ina219;
 
 public enum RegisterAddress {
     CONFIGURATION(0), SHUNT_VOLTAGE(1), BUS_VOLTAGE(2), POWER(3), CURRENT(4), CALIBRATION(5);

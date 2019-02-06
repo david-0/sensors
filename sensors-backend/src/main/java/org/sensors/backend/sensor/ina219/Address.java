@@ -1,4 +1,4 @@
-package org.sensors.backend.ina219;
+package org.sensors.backend.sensor.ina219;
 
 /**
  * Enumeration of the valid I2C bus addresses to use with the INA219.
