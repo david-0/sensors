@@ -3,12 +3,12 @@ package org.sensors.backend.sensor.handler;
 import java.time.Duration;
 import java.util.function.Supplier;
 
-public class IntervalSensor {
+public class IntervalBasedSource {
 	private final Supplier<?> dataProvider;
 	private final String id;
 	private final Duration defaultInterval;
 
-	public IntervalSensor(Supplier<?> dataProvider, String Id, Duration defaultInterval) {
+	public IntervalBasedSource(Supplier<?> dataProvider, String Id, Duration defaultInterval) {
 		this.dataProvider = dataProvider;
 		id = Id;
 		this.defaultInterval = defaultInterval;

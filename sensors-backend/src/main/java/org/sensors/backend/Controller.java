@@ -16,7 +16,9 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.sensors.backend.sensor.handler.IntervalSensor;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.sensors.backend.sensor.handler.EventBasedSource;
+import org.sensors.backend.sensor.handler.IntervalBasedSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,12 +26,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Controller {
 
-	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
+	private static final Logger logger = LoggerFactory
+			.getLogger(Controller.class);
 
 	private static final String SETTING_TOPIC = "settings";
 
 	private final List<ChangeEventListener> changeEventListeners = new ArrayList<>();
-	private final List<IntervalSensor> intervalSensors = new ArrayList<>();
+	private final List<IntervalBasedSource> intervalBasedSources = new ArrayList<>();
+	private final List<EventBasedSource> eventBasedSources = new ArrayList<>();
 
 	private boolean initialized;
 	private final KafkaProducer<String, String> producer;
@@ -40,7 +44,8 @@ public class Controller {
 
 	private KafkaConsumer<String, String> consumer;
 
-	public Controller(KafkaProducer<String, String> producer, KafkaConsumer<String, String> consumer) {
+	public Controller(KafkaProducer<String, String> producer,
+			KafkaConsumer<String, String> consumer) {
 		this.producer = producer;
 		this.consumer = consumer;
 		store = new EventStore();
@@ -51,17 +56,28 @@ public class Controller {
 		this.changeEventListeners.add(listener);
 	}
 
-	public void addIntervalSensor(IntervalSensor sensor) {
-		this.intervalSensors.add(sensor);
+	public void addIntervalBasedSource(IntervalBasedSource source) {
+		this.intervalBasedSources.add(source);
+	}
+
+	public void addEventBasedSource(EventBasedSource source) {
+		this.eventBasedSources.add(source);
 	}
 
 	public void init() throws InterruptedException, ExecutionException {
 		if (initialized) {
 			throw new IllegalStateException("Controller already initialized");
 		}
-		for (IntervalSensor sensor : intervalSensors) {
-			Execution exec = new Execution(producer, "interval-" + sensor.getId(), sensor.getDataProvider());
-			store.addEvent(sensor.getId(), ZonedDateTime.now(), sensor.getDefaultInterval(), exec);
+		for (IntervalBasedSource source : intervalBasedSources) {
+			Execution exec = new Execution(producer,
+					"interval-" + source.getId(), source.getDataProvider());
+			store.addEvent(source.getId(), ZonedDateTime.now(),
+					source.getDefaultInterval(), exec);
+		}
+		for (EventBasedSource source : eventBasedSources) {
+			source.setEventChange((id, state) -> producer
+					.send(new ProducerRecord<String, String>("event-" + id,
+							state.toString())));
 		}
 		consumer.subscribe(Arrays.asList(SETTING_TOPIC));
 	}
@@ -91,12 +107,12 @@ public class Controller {
 		ConsumerRecords<String, String> records = consumer.poll(waitDuration);
 		for (ConsumerRecord<String, String> record : records) {
 			if (SETTING_TOPIC.equals(record.topic())) {
-				messageListeners(record.key(), record.value());
+				onMessage(record.key(), record.value());
 			}
 		}
 	}
 
-	private void messageListeners(String key, String value) {
+	private void onMessage(String key, String value) {
 		Optional<ChangeEventListener> findAny = changeEventListeners.stream() //
 				.filter(l -> l.changeEventProcessed(key, value)).findAny();
 		if (findAny.isPresent()) {
@@ -107,8 +123,11 @@ public class Controller {
 	private boolean updateSensorReadingInterval(String key, String value) {
 		if (store.hasId(key)) {
 			try {
-				Integer interval = new ObjectMapper().readValue(value, Integer.class);
-				store.updateInterval(key, Duration.ofMillis(interval.intValue()), ZonedDateTime.now());
+				Integer interval = new ObjectMapper().readValue(value,
+						Integer.class);
+				store.updateInterval(key,
+						Duration.ofMillis(interval.intValue()),
+						ZonedDateTime.now());
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -120,7 +139,8 @@ public class Controller {
 	private Duration getNextWaitDuration() {
 		Duration maxWaitDuration = Duration.ofSeconds(1);
 		if (store.hasNextEvent()) {
-			Duration toNextExec = Duration.between(ZonedDateTime.now(), store.getNextExecutionTime());
+			Duration toNextExec = Duration.between(ZonedDateTime.now(),
+					store.getNextExecutionTime());
 			if (toNextExec.minus(maxWaitDuration).isNegative()) {
 				return toNextExec;
 			}

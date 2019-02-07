@@ -11,7 +11,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.sensors.backend.sensor.SensorMcp9808;
 import org.sensors.backend.sensor.SensorOneWireTemp;
-import org.sensors.backend.sensor.handler.IntervalSensor;
+import org.sensors.backend.sensor.handler.IntervalBasedSource;
 import org.sensors.backend.sensor.ina219.SensorIna219;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,49 +43,49 @@ public class App {
 				new KafkaProducer<>(App.createProducerProperties()),
 				new KafkaConsumer<>(createConsumerProperties()));
 		createIntervalSensors(bus).stream()
-				.forEach(controller::addIntervalSensor);
+				.forEach(controller::addIntervalBasedSource);
 		controller.init();
 		controller.run();
 		logger.info("controller started");
 		initGpio();
 	}
 
-	private static List<IntervalSensor> createIntervalSensors(I2CBus bus) {
-		List<IntervalSensor> sensors = new ArrayList<>();
+	private static List<IntervalBasedSource> createIntervalSensors(I2CBus bus) {
+		List<IntervalBasedSource> sensors = new ArrayList<>();
 		SensorMcp9808 sensorMcp9808 = new SensorMcp9808(bus, 0x18,
 				"Temp Controller");
 		sensorMcp9808.init();
-		sensors.add(new IntervalSensor(sensorMcp9808::readTemperature,
+		sensors.add(new IntervalBasedSource(sensorMcp9808::readTemperature,
 				"tempController", Duration.ofMillis(5000)));
 		sensorMcp9808 = new SensorMcp9808(bus, 0x1C, "Temp Unbekannt");
 		sensorMcp9808.init();
-		sensors.add(new IntervalSensor(sensorMcp9808::readTemperature,
+		sensors.add(new IntervalBasedSource(sensorMcp9808::readTemperature,
 				"tempUnbekannt", Duration.ofMillis(5000)));
 		SensorIna219 ina1 = new SensorIna219(bus, 0x40, "INA219 1 - LED");
 		ina1.init();
-		sensors.add(new IntervalSensor(ina1::readAll, "ina219-led",
+		sensors.add(new IntervalBasedSource(ina1::readAll, "ina219-led",
 				Duration.ofMillis(500)));
 		SensorIna219 ina2 = new SensorIna219(bus, 0x41, "INA219 2 - Raspi");
 		ina2.init();
-		sensors.add(new IntervalSensor(ina2::readAll, "ina219-raspi",
+		sensors.add(new IntervalBasedSource(ina2::readAll, "ina219-raspi",
 				Duration.ofMillis(500)));
 		SensorIna219 ina3 = new SensorIna219(bus, 0x45, "INA219 3 - Input");
 		ina3.init();
-		sensors.add(new IntervalSensor(ina3::readAll, "ina219-input",
+		sensors.add(new IntervalBasedSource(ina3::readAll, "ina219-input",
 				Duration.ofMillis(500)));
 
 		W1Master master = new W1Master();
 		SensorOneWireTemp temp = new SensorOneWireTemp(master,
 				"28-0000046d50e7", "T1-aussen", "Abwassertank aussen");
-		sensors.add(new IntervalSensor(temp::getTemperature, "DS18B20-T1-aussen",
+		sensors.add(new IntervalBasedSource(temp::getTemperature, "DS18B20-T1-aussen",
 				Duration.ofMillis(5000)));
 		temp = new SensorOneWireTemp(master, "28-0000093001f5", "T2-luft",
 				"Aussentemperatur");
-		sensors.add(new IntervalSensor(temp::getTemperature, "DS18B20-T2-luft",
+		sensors.add(new IntervalBasedSource(temp::getTemperature, "DS18B20-T2-luft",
 				Duration.ofMillis(5000)));
 		temp = new SensorOneWireTemp(master, "28-00000a25c18f", "T3-innen",
 				"Abwassertank innen");
-		sensors.add(new IntervalSensor(temp::getTemperature, "DS18B20-T3-innen",
+		sensors.add(new IntervalBasedSource(temp::getTemperature, "DS18B20-T3-innen",
 				Duration.ofMillis(5000)));
 		return sensors;
 	}
