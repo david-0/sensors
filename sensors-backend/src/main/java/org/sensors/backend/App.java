@@ -76,16 +76,16 @@ public class App {
 
 		W1Master master = new W1Master();
 		SensorOneWireTemp temp = new SensorOneWireTemp(master,
-				"28-0000046d50e7", "T1", "Abwassertank aussen");
-		sensors.add(new IntervalSensor(temp::getTemperature, "DS18B20-T1",
+				"28-0000046d50e7", "T1-aussen", "Abwassertank aussen");
+		sensors.add(new IntervalSensor(temp::getTemperature, "DS18B20-T1-aussen",
 				Duration.ofMillis(5000)));
-		temp = new SensorOneWireTemp(master, "28-0000093001f5", "T2",
+		temp = new SensorOneWireTemp(master, "28-0000093001f5", "T2-luft",
 				"Aussentemperatur");
-		sensors.add(new IntervalSensor(temp::getTemperature, "DS18B20-T2",
+		sensors.add(new IntervalSensor(temp::getTemperature, "DS18B20-T2-luft",
 				Duration.ofMillis(5000)));
-		temp = new SensorOneWireTemp(master, "28-00000a25c18f", "T3",
+		temp = new SensorOneWireTemp(master, "28-00000a25c18f", "T3-innen",
 				"Abwassertank innen");
-		sensors.add(new IntervalSensor(temp::getTemperature, "DS18B20-T3",
+		sensors.add(new IntervalSensor(temp::getTemperature, "DS18B20-T3-innen",
 				Duration.ofMillis(5000)));
 		return sensors;
 	}
