@@ -38,7 +38,7 @@ public class Button implements EventBasedSource {
 			@Override
 			public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
 				if (eventChange != null) {
-					eventChange.accept(id, Boolean.valueOf(PinState.HIGH.equals(event.getState())).toString());
+					eventChange.accept(id, Boolean.valueOf(!PinState.HIGH.equals(event.getState())).toString());
 				}
 			}
 		});

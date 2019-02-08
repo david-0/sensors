@@ -44,8 +44,8 @@ public class App {
 					.peek(controller::addStateUpdaterSource) //
 					.forEach(controller::addIntervalBasedSource);
 			createOneWireSensors(master).stream().forEach(controller::addIntervalBasedSource);
-			controller
-					.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_03, PinPullResistance.PULL_DOWN, "led-button"));
+			controller.addEventBasedSource(
+					new Button(gpio, RaspiPin.GPIO_03, PinPullResistance.PULL_DOWN, "led-button").init());
 			controller.addEventBasedSource(
 					new Button(gpio, RaspiPin.GPIO_00, PinPullResistance.PULL_DOWN, "wlan-button").init());
 			controller.addSettingChangeEventListener(
