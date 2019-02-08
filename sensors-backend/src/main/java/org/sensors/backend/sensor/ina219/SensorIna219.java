@@ -36,7 +36,7 @@ public class SensorIna219 implements IntervalBasedSource, StateUpdater {
 	}
 
 	public SensorIna219(I2CBus bus, int address, String id, String description, Duration defaultInterval) {
-		this(bus, address, id, description, defaultInterval, 0);
+		this(bus, address, id, description, defaultInterval, 5);
 	}
 
 	public SensorIna219(I2CBus bus, int address, String id, String description, Duration interval, int frequencyInHz) {
