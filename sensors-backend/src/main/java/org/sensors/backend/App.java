@@ -1,8 +1,6 @@
 package org.sensors.backend;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
@@ -12,7 +10,6 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.sensors.backend.sensor.SensorMcp9808;
 import org.sensors.backend.sensor.SensorOneWireTemp;
-import org.sensors.backend.sensor.handler.IntervalBasedSource;
 import org.sensors.backend.sensor.ina219.SensorIna219;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
