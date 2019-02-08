@@ -142,7 +142,7 @@ public class Controller {
 	private void onMessage(String key, String value) {
 		Optional<ChangeEventListener> findAny = changeEventListeners.stream() //
 				.filter(l -> l.onSettingChange(key, value)).findAny();
-		if (findAny.isPresent()) {
+		if (!findAny.isPresent()) {
 			logger.warn("No handler for key: '{}', value: '{}'", key, value);
 		}
 	}

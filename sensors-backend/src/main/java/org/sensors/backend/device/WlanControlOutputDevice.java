@@ -39,6 +39,7 @@ public class WlanControlOutputDevice implements ChangeEventListener, EventBasedS
 						"Invalid value '" + value + "' for " + WlanControlOutputDevice.class.getSimpleName()
 								+ " with id '" + key + "', valid values: [on, off]");
 			}
+			return true;
 		}
 		return false;
 	}
