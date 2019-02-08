@@ -97,9 +97,12 @@ public class Controller {
 	}
 
 	public void run() {
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		runFuture = executor.submit(this::runAsync);
+	}
+
+	public void waitMainThread() {
 		try {
-			ExecutorService executor = Executors.newSingleThreadExecutor();
-			runFuture = executor.submit(this::runAsync);
 			runFuture.get();
 		} catch (InterruptedException | ExecutionException e) {
 			throw new RuntimeException(e);

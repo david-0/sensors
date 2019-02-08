@@ -54,6 +54,7 @@ public class App {
 					.forEach(controller::addEventBasedSource);
 			controller.init();
 			controller.run();
+			controller.waitMainThread();
 			logger.info("controller started");
 		} catch (Exception e) {
 			logger.error("Abort main", e);
