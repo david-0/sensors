@@ -1,28 +1,18 @@
 package org.sensors.backend.sensor.handler;
 
 import java.time.Duration;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class IntervalBasedSource {
-	private final Supplier<?> dataProvider;
-	private final String id;
-	private final Duration defaultInterval;
+import org.sensors.backend.ChangeEventListener;
 
-	public IntervalBasedSource(Supplier<?> dataProvider, String Id, Duration defaultInterval) {
-		this.dataProvider = dataProvider;
-		id = Id;
-		this.defaultInterval = defaultInterval;
-	}
+public interface IntervalBasedSource extends ChangeEventListener {
 
-	public Supplier<?> getDataProvider() {
-		return dataProvider;
-	}
+	Supplier<?> getDataProvider();
 
-	public String getId() {
-		return id;
-	}
+	String getId();
 
-	public Duration getDefaultInterval() {
-		return defaultInterval;
-	}
+	Duration getInterval();
+
+	void setIntervalChangeListener(Consumer<Duration> listener);
 }

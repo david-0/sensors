@@ -5,11 +5,13 @@ public class Values {
 	private final Float busVoltage;
 	private final Float power;
 	private final Float current;
+	private final Float averagePowerPerSec;
 
-	public Values(Float busVoltage, Float power, Float current) {
+	public Values(Float busVoltage, Float power, Float current, Float averagePowerPerSec) {
 		this.busVoltage = busVoltage;
 		this.power = power;
 		this.current = current;
+		this.averagePowerPerSec = averagePowerPerSec;
 	}
 
 	public Float getBusVoltage() {
@@ -22,5 +24,9 @@ public class Values {
 
 	public Float getCurrent() {
 		return current;
+	}
+	
+	public Float getAveragePowerPerSec() {
+		return averagePowerPerSec;
 	}
 }

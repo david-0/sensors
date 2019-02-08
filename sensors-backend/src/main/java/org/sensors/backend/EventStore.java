@@ -7,14 +7,15 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.sensors.backend.event.Event;
+
 public class EventStore {
 	private SortedSet<Event> events = new TreeSet<Event>();
 	private Map<String, Event> lookup = new HashMap<>();
 
-	public void addEvent(String id, ZonedDateTime executionTime, Duration interval, Execution exec) {
-		Event event = new Event(id, executionTime, interval, exec);
+	public void addEvent(Event event) {
 		events.add(event);
-		lookup.put(id, event);
+		lookup.put(event.getId(), event);
 	}
 
 	public boolean hasNextEvent() {
@@ -25,15 +26,28 @@ public class EventStore {
 		return events.size();
 	}
 
-	public boolean updateInterval(String id, Duration newInterval, ZonedDateTime now) {
-		Event event = lookup.get(id);
-		if (event==null) {
+	public boolean updateInterval(String id, Duration newInterval, ZonedDateTime start) {
+		final Event event = lookup.get(id);
+		if (event == null) {
 			return false;
 		}
 		if (!removeEvent(id)) {
 			throw new RuntimeException("Event could not be removed from events.");
 		}
-		addEvent(id, computeNewExecTime(newInterval, event, now), newInterval, event.getExec());
+		addEvent(event.updateStartTime(computeNewExecTime(newInterval, event, start), newInterval));
+		return true;
+	}
+
+	public boolean updateFrequency(String id, Integer frequencyInHz) {
+		final Event event = lookup.get(id);
+		if (event == null) {
+			return false;
+		}
+		if (!removeEvent(id)) {
+			throw new RuntimeException("Event could not be removed from events.");
+		}
+		Duration interval = Duration.ofNanos(1_000_000_000 / frequencyInHz);
+		addEvent(event.updateStartTime(computeNewExecTime(interval, event, ZonedDateTime.now()), interval));
 		return true;
 	}
 
@@ -63,8 +77,8 @@ public class EventStore {
 			throw new RuntimeException("Event could not be removed from lookup.");
 		}
 		if (first.getIntervall() != null) {
-			Event event = new Event(first.getId(), first.getExecutionTme().plus(first.getIntervall()),
-					first.getIntervall(), first.getExec());
+			Event event = first.updateStartTime(first.getExecutionTme().plus(first.getIntervall()),
+					first.getIntervall());
 			events.add(event);
 			lookup.put(first.getId(), event);
 		}
@@ -74,4 +88,5 @@ public class EventStore {
 	public boolean hasId(String id) {
 		return lookup.containsKey(id);
 	}
+
 }

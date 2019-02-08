@@ -1,20 +1,17 @@
-package org.sensors.backend;
+package org.sensors.backend.event;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
 
-public class Event implements Comparable<Event> {
+public abstract class Event implements Comparable<Event> {
 	private final ZonedDateTime executionTime;
-	private final Duration intervall;
-	private final Execution exec;
+	private final Duration interval;
 	private final String id;
 
-	public Event(String id, ZonedDateTime executionTme, Duration intervall,
-			Execution exec) {
+	public Event(String id, ZonedDateTime executionTme, Duration interval) {
 		this.id = id;
 		this.executionTime = executionTme;
-		this.intervall = intervall;
-		this.exec = exec;
+		this.interval = interval;
 	}
 
 	public String getId() {
@@ -26,16 +23,16 @@ public class Event implements Comparable<Event> {
 	}
 
 	public Duration getIntervall() {
-		return intervall;
+		return interval;
 	}
-
-	public Execution getExec() {
-		return exec;
-	}
+	
+	public abstract void exec();
+	
+	public abstract Event updateStartTime(ZonedDateTime start, Duration interval);
 
 	@Override
 	public int compareTo(Event e) {
-		if (!executionTime.equals(e.getExecutionTme())) {
+		if (!getExecutionTme().equals(e.getExecutionTme())) {
 			return executionTime.compareTo(e.getExecutionTme());
 		}
 		return hashCode() - e.hashCode();

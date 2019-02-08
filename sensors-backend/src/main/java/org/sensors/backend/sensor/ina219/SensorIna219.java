@@ -1,34 +1,58 @@
 package org.sensors.backend.sensor.ina219;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import org.sensors.backend.sensor.handler.IntervalBasedSource;
+import org.sensors.backend.sensor.handler.StateUpdater;
 
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 
-public class SensorIna219 {
+public class SensorIna219 implements IntervalBasedSource, StateUpdater {
 
 	private static final float SHUNT_VOLTAGE_LSB = 10e-6f;
 	private static final float BUS_VOLTAGE_LSB_IN_MV = 4;
 	private static final int POWER_LSB_SCALE = 20;
 
+	private boolean initialized;
+	private float currentLSB;
+
 	private I2CBus bus;
 	private I2CDevice device;
 	private int address;
-	private boolean initialized;
+	private String id;
 	private String description;
-	private float currentLSB;
+	private Duration interval;
+	private Consumer<Duration> onIntervalChangeListener;
+	private int frequencyInHz;
+	private AverageCalculator avgCalc = new AverageCalculator();
+	private Consumer<Integer> onFrequencyChangeListener;
 
-	public SensorIna219(I2CBus bus, int address, String description) {
+	public SensorIna219(I2CBus bus, int address, String id, String description) {
+		this(bus, address, id, description, Duration.ofMillis(5000));
+	}
+
+	public SensorIna219(I2CBus bus, int address, String id, String description, Duration defaultInterval) {
+		this(bus, address, id, description, defaultInterval, 0);
+	}
+
+	public SensorIna219(I2CBus bus, int address, String id, String description, Duration interval, int frequencyInHz) {
 		this.bus = bus;
 		this.address = address;
+		this.id = id;
 		this.description = description;
+		this.interval = interval;
+		this.frequencyInHz = frequencyInHz;
 	}
 
 	public String getDescription() {
 		return description;
 	}
 
-	public void init() {
+	public SensorIna219 init() {
 		if (initialized) {
 			throw new IllegalStateException("Sensor '" + description + "' already initialized");
 		}
@@ -36,7 +60,7 @@ public class SensorIna219 {
 			device = bus.getDevice(address);
 			double shuntResistance = 0.1;
 			float maxExpectedCurrent = 3.2f;
-			
+
 			// see doc: http://www.ti.com/lit/ds/symlink/ina219.pdf
 			currentLSB = (maxExpectedCurrent / 32768);
 			configure(Brng.V32, Pga.GAIN_1, Adc.BITS_12, Adc.BITS_12);
@@ -47,6 +71,7 @@ public class SensorIna219 {
 			throw new RuntimeException("init failed", e);
 		}
 		initialized = true;
+		return this;
 	}
 
 	/**
@@ -75,28 +100,34 @@ public class SensorIna219 {
 
 	public Float readBusVoltageInW() {
 		short val = readSignedRegister(RegisterAddress.BUS_VOLTAGE);
-		int shiftedRegister =val >> 3;
+		int shiftedRegister = val >> 3;
 		Float busVoltageInV = Float.valueOf(shiftedRegister * BUS_VOLTAGE_LSB_IN_MV / 1000);
 		return busVoltageInV;
 	}
 
 	public Float readPowerInW() {
+		return Float.valueOf(getPowerInW());
+	}
+
+	private float getPowerInW() {
 		int rval = readRegister(RegisterAddress.POWER);
-		return Float.valueOf(rval * POWER_LSB_SCALE * currentLSB);
+		return rval * POWER_LSB_SCALE * currentLSB;
 	}
 
 	public Float readCurrentInI() {
 		int rval = readSignedRegister(RegisterAddress.CURRENT);
 		return Float.valueOf(rval * currentLSB);
 	}
-	
+
 	public int readConfig() {
 		int val = readRegister(RegisterAddress.CONFIGURATION);
 		return val;
 	}
-	
+
 	public Values readAll() {
-		return new Values(readBusVoltageInW(), readPowerInW(), readCurrentInI());
+		avgCalc.add(readPowerInW());
+		Float avg = Float.valueOf((float) avgCalc.getAveragePerSecAndReset());
+		return new Values(readBusVoltageInW(), readPowerInW(), readCurrentInI(), avg);
 	}
 
 	public void writeRegister(final RegisterAddress ra, final int value) throws IOException {
@@ -122,4 +153,67 @@ public class SensorIna219 {
 		}
 		return (short) ((buf[0] << 8) | (buf[1] & 0xFF));
 	}
+
+	@Override
+	public Supplier<Values> getDataProvider() {
+		return this::readAll;
+	}
+
+	@Override
+	public String getId() {
+		return id;
+	}
+
+	@Override
+	public Duration getInterval() {
+		return interval;
+	}
+
+	private void setInterval(Duration interval) {
+		this.interval = interval;
+		if (onIntervalChangeListener != null) {
+			onIntervalChangeListener.accept(interval);
+		}
+	}
+
+	@Override
+	public boolean onSettingChange(String key, String value) {
+		if (key.equals(id + "-intervalInMs")) {
+			setInterval(Duration.ofMillis(Integer.parseInt(value)));
+			return true;
+		} else if (key.equals(id + "-frequencyInHz")) {
+			setFrequencyInHz(Integer.parseInt(value));
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public void updateState() {
+		avgCalc.add(getPowerInW());
+	}
+
+	@Override
+	public int getFrequencyInHz() {
+		return frequencyInHz;
+	}
+
+	private void setFrequencyInHz(int frequencyInHz) {
+		this.frequencyInHz = frequencyInHz;
+		if (onFrequencyChangeListener != null) {
+			onFrequencyChangeListener.accept(Integer.valueOf(frequencyInHz));
+		}
+	}
+
+	@Override
+	public void setIntervalChangeListener(Consumer<Duration> listener) {
+		onIntervalChangeListener = listener;
+
+	}
+
+	@Override
+	public void setFrequencyChangeListener(Consumer<Integer> listener) {
+		onFrequencyChangeListener = listener;
+	}
+
 }

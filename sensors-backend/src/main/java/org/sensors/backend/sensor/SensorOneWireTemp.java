@@ -1,27 +1,38 @@
 package org.sensors.backend.sensor;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import org.sensors.backend.sensor.handler.IntervalBasedSource;
 
 import com.pi4j.component.temperature.TemperatureSensor;
 import com.pi4j.component.temperature.impl.TmpDS18B20DeviceType;
 import com.pi4j.io.w1.W1Device;
 import com.pi4j.io.w1.W1Master;
 
-public class SensorOneWireTemp {
+public class SensorOneWireTemp implements IntervalBasedSource {
 
 	private TemperatureSensor tempSensor;
 	private W1Device device;
 	private String id;
 	private String sensorId;
 	private String description;
+	private Duration interval;
+	private Consumer<Duration> intervalChangeListener;
 
-	public SensorOneWireTemp(W1Master w1Master, String sensorId, String id,
-			String description) {
+	public SensorOneWireTemp(W1Master w1Master, String sensorId, String id, String description) {
+		this(w1Master, sensorId, id, description, Duration.ofMillis(5000));
+	}
+
+	public SensorOneWireTemp(W1Master w1Master, String sensorId, String id, String description,
+			Duration defaultInterval) {
 		this.sensorId = sensorId;
 		this.id = id;
 		this.description = description;
-		List<W1Device> w1Devices = w1Master
-				.getDevices(TmpDS18B20DeviceType.FAMILY_CODE);
+		this.interval = defaultInterval;
+		List<W1Device> w1Devices = w1Master.getDevices(TmpDS18B20DeviceType.FAMILY_CODE);
 		for (W1Device device : w1Devices) {
 			if (device.getId().trim().equals(sensorId)) {
 				this.device = device;
@@ -29,12 +40,11 @@ public class SensorOneWireTemp {
 			}
 		}
 		if (this.device == null) {
-			throw new RuntimeException("device with '" + sensorId
-					+ "' konnte nicht gefunden werden.");
+			throw new RuntimeException("device with '" + sensorId + "' konnte nicht gefunden werden.");
 		}
 	}
 
-	public Float getTemperature() {
+	public Float readTemperature() {
 		return Float.valueOf((float) tempSensor.getTemperature());
 	}
 
@@ -48,5 +58,36 @@ public class SensorOneWireTemp {
 
 	public String getDescription() {
 		return description;
+	}
+
+	@Override
+	public Duration getInterval() {
+		return interval;
+	}
+
+	@Override
+	public Supplier<?> getDataProvider() {
+		return this::readTemperature;
+	}
+
+	private void setInterval(Duration interval) {
+		this.interval = interval;
+		if (intervalChangeListener != null) {
+			intervalChangeListener.accept(interval);
+		}
+	}
+
+	@Override
+	public boolean onSettingChange(String key, String value) {
+		if (key.equals(id + "-intervalInMs")) {
+			setInterval(Duration.ofMillis(Integer.parseInt(value)));
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public void setIntervalChangeListener(Consumer<Duration> listener) {
+		this.intervalChangeListener = listener;
 	}
 }

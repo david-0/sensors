@@ -17,22 +17,24 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.sensors.backend.event.FrequencyEvent;
+import org.sensors.backend.event.IntervalEvent;
 import org.sensors.backend.sensor.handler.EventBasedSource;
 import org.sensors.backend.sensor.handler.IntervalBasedSource;
+import org.sensors.backend.sensor.handler.StateUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 public class Controller {
 
-	private static final Logger logger = LoggerFactory
-			.getLogger(Controller.class);
+	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
 	private static final String SETTING_TOPIC = "settings";
 
 	private final List<ChangeEventListener> changeEventListeners = new ArrayList<>();
 	private final List<IntervalBasedSource> intervalBasedSources = new ArrayList<>();
+	private final List<StateUpdater> stateUpdaterSources = new ArrayList<>();
 	private final List<EventBasedSource> eventBasedSources = new ArrayList<>();
 
 	private boolean initialized;
@@ -44,42 +46,54 @@ public class Controller {
 
 	private KafkaConsumer<String, String> consumer;
 
-	public Controller(KafkaProducer<String, String> producer,
-			KafkaConsumer<String, String> consumer) {
+	public Controller(KafkaProducer<String, String> producer, KafkaConsumer<String, String> consumer) {
 		this.producer = producer;
 		this.consumer = consumer;
 		store = new EventStore();
-		changeEventListeners.add((k, v) -> updateSensorReadingInterval(k, v));
 	}
 
 	public void addSettingChangeEventListener(ChangeEventListener listener) {
+		ensureNotAlreadyInitialized();
 		this.changeEventListeners.add(listener);
 	}
 
 	public void addIntervalBasedSource(IntervalBasedSource source) {
+		ensureNotAlreadyInitialized();
 		this.intervalBasedSources.add(source);
+		this.changeEventListeners.add(source);
+	}
+
+	public void addStateUpdaterSource(StateUpdater source) {
+		ensureNotAlreadyInitialized();
+		this.stateUpdaterSources.add(source);
+		this.changeEventListeners.add(source);
 	}
 
 	public void addEventBasedSource(EventBasedSource source) {
+		ensureNotAlreadyInitialized();
 		this.eventBasedSources.add(source);
 	}
 
 	public void init() throws InterruptedException, ExecutionException {
-		if (initialized) {
-			throw new IllegalStateException("Controller already initialized");
-		}
+		ensureNotAlreadyInitialized();
 		for (IntervalBasedSource source : intervalBasedSources) {
-			Execution exec = new Execution(producer,
-					"interval-" + source.getId(), source.getDataProvider());
-			store.addEvent(source.getId(), ZonedDateTime.now(),
-					source.getDefaultInterval(), exec);
+			store.addEvent(new IntervalEvent(source, ZonedDateTime.now(), (id, state) -> sendMessage(id, null, state)));
+			source.setIntervalChangeListener(
+					interval -> store.updateInterval(source.getId(), interval, ZonedDateTime.now()));
+		}
+		for (StateUpdater updater : stateUpdaterSources) {
+			store.addEvent(new FrequencyEvent(updater, ZonedDateTime.now()));
+			updater.setFrequencyChangeListener(frequencyInHz -> store.updateFrequency(updater.getId(), frequencyInHz));
 		}
 		for (EventBasedSource source : eventBasedSources) {
-			source.setEventChange((id, state) -> producer
-					.send(new ProducerRecord<String, String>("event-" + id,
-							state.toString())));
+			source.onChange((id, state) -> sendMessage("events", id, state.toString()));
 		}
 		consumer.subscribe(Arrays.asList(SETTING_TOPIC));
+		initialized = true;
+	}
+
+	private Future<RecordMetadata> sendMessage(String topic, String key, String value) {
+		return producer.send(new ProducerRecord<String, String>(topic, key, value));
 	}
 
 	public void run() {
@@ -87,13 +101,18 @@ public class Controller {
 		runFuture = executor.submit(this::runAsync);
 	}
 
+	private void ensureNotAlreadyInitialized() {
+		if (initialized) {
+			throw new IllegalStateException("alreay initialized");
+		}
+	}
+
 	private void runAsync() {
 		try {
 			while (true) {
 				Duration waitDuration = getNextWaitDuration();
 				if (waitDuration.isNegative() || waitDuration.isZero()) {
-					Event event = store.getNextEvent();
-					event.getExec().run();
+					store.getNextEvent().exec();
 				} else {
 					consumeRecords(waitDuration);
 				}
@@ -114,33 +133,16 @@ public class Controller {
 
 	private void onMessage(String key, String value) {
 		Optional<ChangeEventListener> findAny = changeEventListeners.stream() //
-				.filter(l -> l.changeEventProcessed(key, value)).findAny();
+				.filter(l -> l.onSettingChange(key, value)).findAny();
 		if (findAny.isPresent()) {
 			logger.warn("No handler for key: '{}', value: '{}'", key, value);
 		}
 	}
 
-	private boolean updateSensorReadingInterval(String key, String value) {
-		if (store.hasId(key)) {
-			try {
-				Integer interval = new ObjectMapper().readValue(value,
-						Integer.class);
-				store.updateInterval(key,
-						Duration.ofMillis(interval.intValue()),
-						ZonedDateTime.now());
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-			return true;
-		}
-		return false;
-	}
-
 	private Duration getNextWaitDuration() {
 		Duration maxWaitDuration = Duration.ofSeconds(1);
 		if (store.hasNextEvent()) {
-			Duration toNextExec = Duration.between(ZonedDateTime.now(),
-					store.getNextExecutionTime());
+			Duration toNextExec = Duration.between(ZonedDateTime.now(), store.getNextExecutionTime());
 			if (toNextExec.minus(maxWaitDuration).isNegative()) {
 				return toNextExec;
 			}

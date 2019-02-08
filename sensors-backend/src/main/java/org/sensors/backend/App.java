@@ -3,6 +3,7 @@ package org.sensors.backend;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
@@ -35,88 +36,66 @@ public class App {
 
 	private static boolean wlanOn;
 
-	public static void main(String[] args) throws UnsupportedBusNumberException,
-			IOException, InterruptedException, ExecutionException {
+	public static void main(String[] args)
+			throws UnsupportedBusNumberException, IOException, InterruptedException, ExecutionException {
 		I2CBus bus = I2CFactory.getInstance(I2CBus.BUS_1);
+		W1Master master = new W1Master();
 
-		Controller controller = new Controller(
-				new KafkaProducer<>(App.createProducerProperties()),
+		Controller controller = new Controller(new KafkaProducer<>(App.createProducerProperties()),
 				new KafkaConsumer<>(createConsumerProperties()));
-		createIntervalSensors(bus).stream()
-				.forEach(controller::addIntervalBasedSource);
+		createMcp9808Sensors(bus).stream().forEach(controller::addIntervalBasedSource);
+		createIna219Sensors(bus).stream().forEach(controller::addIntervalBasedSource);
+		createOneWireSensors(master).stream().forEach(controller::addIntervalBasedSource);
 		controller.init();
 		controller.run();
 		logger.info("controller started");
 		initGpio();
 	}
 
-	private static List<IntervalBasedSource> createIntervalSensors(I2CBus bus) {
-		List<IntervalBasedSource> sensors = new ArrayList<>();
-		SensorMcp9808 sensorMcp9808 = new SensorMcp9808(bus, 0x18,
-				"Temp Controller");
-		sensorMcp9808.init();
-		sensors.add(new IntervalBasedSource(sensorMcp9808::readTemperature,
-				"tempController", Duration.ofMillis(5000)));
-		sensorMcp9808 = new SensorMcp9808(bus, 0x1C, "Temp Unbekannt");
-		sensorMcp9808.init();
-		sensors.add(new IntervalBasedSource(sensorMcp9808::readTemperature,
-				"tempUnbekannt", Duration.ofMillis(5000)));
-		SensorIna219 ina1 = new SensorIna219(bus, 0x40, "INA219 1 - LED");
-		ina1.init();
-		sensors.add(new IntervalBasedSource(ina1::readAll, "ina219-led",
-				Duration.ofMillis(500)));
-		SensorIna219 ina2 = new SensorIna219(bus, 0x41, "INA219 2 - Raspi");
-		ina2.init();
-		sensors.add(new IntervalBasedSource(ina2::readAll, "ina219-raspi",
-				Duration.ofMillis(500)));
-		SensorIna219 ina3 = new SensorIna219(bus, 0x45, "INA219 3 - Input");
-		ina3.init();
-		sensors.add(new IntervalBasedSource(ina3::readAll, "ina219-input",
-				Duration.ofMillis(500)));
+	private static List<SensorMcp9808> createMcp9808Sensors(I2CBus bus) {
+		return Arrays.asList(//
+				new SensorMcp9808(bus, 0x18, "controller", "Temp Controller").init(),
+				new SensorMcp9808(bus, 0x1C, "unknown", "Temp Unbekannt").init());
+	}
 
-		W1Master master = new W1Master();
-		SensorOneWireTemp temp = new SensorOneWireTemp(master,
-				"28-0000046d50e7", "T1-aussen", "Abwassertank aussen");
-		sensors.add(new IntervalBasedSource(temp::getTemperature, "DS18B20-T1-aussen",
-				Duration.ofMillis(5000)));
-		temp = new SensorOneWireTemp(master, "28-0000093001f5", "T2-luft",
-				"Aussentemperatur");
-		sensors.add(new IntervalBasedSource(temp::getTemperature, "DS18B20-T2-luft",
-				Duration.ofMillis(5000)));
-		temp = new SensorOneWireTemp(master, "28-00000a25c18f", "T3-innen",
-				"Abwassertank innen");
-		sensors.add(new IntervalBasedSource(temp::getTemperature, "DS18B20-T3-innen",
-				Duration.ofMillis(5000)));
-		return sensors;
+	private static List<SensorIna219> createIna219Sensors(I2CBus bus) {
+		return Arrays.asList(//
+				new SensorIna219(bus, 0x40, "ina219-led", "INA219 1 - LED"),
+				new SensorIna219(bus, 0x41, "ina219-raspi", "INA219 2 - Raspi"),
+				new SensorIna219(bus, 0x45, "ina219-input", "INA219 3 - Input"));
+	}
+
+	private static List<SensorOneWireTemp> createOneWireSensors(W1Master master) {
+		return Arrays.asList(//
+				new SensorOneWireTemp(master, "28-0000046d50e7", "T1-aussen", "Abwassertank aussen"),
+				new SensorOneWireTemp(master, "28-0000093001f5", "T2-luft", "Aussentemperatur"),
+				new SensorOneWireTemp(master, "28-00000a25c18f", "T3-innen", "Abwassertank innen"));
 	}
 
 	private static void initGpio() {
 		final GpioController gpio = GpioFactory.getInstance();
 
-		final GpioPinDigitalInput ledButton = gpio.provisionDigitalInputPin(
-				RaspiPin.GPIO_03, PinPullResistance.PULL_DOWN);
+		final GpioPinDigitalInput ledButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03,
+				PinPullResistance.PULL_DOWN);
 		ledButton.setShutdownOptions(true);
 		ledButton.addListener(new GpioPinListenerDigital() {
 			@Override
-			public void handleGpioPinDigitalStateChangeEvent(
-					GpioPinDigitalStateChangeEvent event) {
-				System.out.println(" --> GPIO PIN (LED Button) STATE CHANGE: "
-						+ event.getPin() + " = " + event.getState());
+			public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
+				System.out.println(
+						" --> GPIO PIN (LED Button) STATE CHANGE: " + event.getPin() + " = " + event.getState());
 			}
 
 		});
 
-		final GpioPinDigitalOutput wlanLED = gpio
-				.provisionDigitalOutputPin(RaspiPin.GPIO_02);
-		final GpioPinDigitalInput wlanButton = gpio.provisionDigitalInputPin(
-				RaspiPin.GPIO_00, PinPullResistance.PULL_DOWN);
+		final GpioPinDigitalOutput wlanLED = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_02);
+		final GpioPinDigitalInput wlanButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_00,
+				PinPullResistance.PULL_DOWN);
 		wlanButton.setShutdownOptions(true);
 		wlanButton.addListener(new GpioPinListenerDigital() {
 			@Override
-			public void handleGpioPinDigitalStateChangeEvent(
-					GpioPinDigitalStateChangeEvent event) {
-				System.out.println(" --> GPIO PIN (WLAN Button) STATE CHANGE: "
-						+ event.getPin() + " = " + event.getState());
+			public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
+				System.out.println(
+						" --> GPIO PIN (WLAN Button) STATE CHANGE: " + event.getPin() + " = " + event.getState());
 				if (event.getState().equals(PinState.LOW)) {
 					wlanOn = !wlanOn;
 				}
@@ -132,10 +111,8 @@ public class App {
 		props.put("group.id", "test");
 		props.put("enable.auto.commit", "true");
 		props.put("auto.commit.interval.ms", "1000");
-		props.put("key.deserializer",
-				"org.apache.kafka.common.serialization.StringDeserializer");
-		props.put("value.deserializer",
-				"org.apache.kafka.common.serialization.StringDeserializer");
+		props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+		props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
 		return props;
 	}
 
@@ -147,10 +124,8 @@ public class App {
 		props.put("batch.size", 16384);
 		props.put("linger.ms", 1);
 		props.put("buffer.memory", 33554432);
-		props.put("key.serializer",
-				"org.apache.kafka.common.serialization.StringSerializer");
-		props.put("value.serializer",
-				"org.apache.kafka.common.serialization.StringSerializer");
+		props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+		props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 		return props;
 	}
 }

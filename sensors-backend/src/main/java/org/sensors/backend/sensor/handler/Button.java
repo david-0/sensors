@@ -17,29 +17,25 @@ public class Button implements EventBasedSource {
 	private PinPullResistance resistance;
 	private String id;
 
-	public Button(GpioController gpio, Pin pin,
-			PinPullResistance resistance, String id) {
+	public Button(GpioController gpio, Pin pin, PinPullResistance resistance, String id) {
 		this.gpio = gpio;
 		this.pin = pin;
 		this.resistance = resistance;
 		this.id = id;
 	}
 
-	public void setEventChange(BiConsumer<String, Boolean> eventChange) {
+	public void onChange(BiConsumer<String, Boolean> eventChange) {
 		this.eventChange = eventChange;
 	}
 
 	public void init() {
-		GpioPinDigitalInput ledButton = gpio.provisionDigitalInputPin(pin,
-				resistance);
+		GpioPinDigitalInput ledButton = gpio.provisionDigitalInputPin(pin, resistance);
 		ledButton.setShutdownOptions(true);
 		ledButton.addListener(new GpioPinListenerDigital() {
 			@Override
-			public void handleGpioPinDigitalStateChangeEvent(
-					GpioPinDigitalStateChangeEvent event) {
+			public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
 				if (eventChange != null) {
-					eventChange.accept(id,
-							PinState.HIGH.equals(event.getState()));
+					eventChange.accept(id, PinState.HIGH.equals(event.getState()));
 				}
 			}
 		});
