@@ -1,4 +1,4 @@
-package org.sensors.backend.sensor;
+package org.sensors.backend.device;
 
 import java.util.function.BiConsumer;
 

@@ -8,8 +8,8 @@ import java.util.concurrent.ExecutionException;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.sensors.backend.sensor.SensorMcp9808;
-import org.sensors.backend.sensor.SensorOneWireTemp;
+import org.sensors.backend.device.SensorMcp9808;
+import org.sensors.backend.device.SensorOneWireTemp;
 import org.sensors.backend.sensor.ina219.SensorIna219;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
