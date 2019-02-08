@@ -14,7 +14,7 @@ import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 
 public class Button implements EventBasedSource {
 	private final GpioController gpio;
-	private BiConsumer<String, Boolean> eventChange;
+	private BiConsumer<String, String> eventChange;
 	private Pin pin;
 	private PinPullResistance resistance;
 	private String id;
@@ -26,20 +26,22 @@ public class Button implements EventBasedSource {
 		this.id = id;
 	}
 
-	public void onChange(BiConsumer<String, Boolean> eventChange) {
+	@Override
+	public void onChange(BiConsumer<String, String> eventChange) {
 		this.eventChange = eventChange;
 	}
 
-	public void init() {
+	public Button init() {
 		GpioPinDigitalInput ledButton = gpio.provisionDigitalInputPin(pin, resistance);
 		ledButton.setShutdownOptions(true);
 		ledButton.addListener(new GpioPinListenerDigital() {
 			@Override
 			public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
 				if (eventChange != null) {
-					eventChange.accept(id, PinState.HIGH.equals(event.getState()));
+					eventChange.accept(id, Boolean.valueOf(PinState.HIGH.equals(event.getState())).toString());
 				}
 			}
 		});
+		return this;
 	}
 }

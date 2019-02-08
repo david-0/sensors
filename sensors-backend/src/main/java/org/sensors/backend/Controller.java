@@ -86,7 +86,7 @@ public class Controller {
 			updater.setFrequencyChangeListener(frequencyInHz -> store.updateFrequency(updater.getId(), frequencyInHz));
 		}
 		for (EventBasedSource source : eventBasedSources) {
-			source.onChange((id, state) -> sendMessage("events", id, state.toString()));
+			source.onChange((id, state) -> sendMessage("events", id, state));
 		}
 		consumer.subscribe(Arrays.asList(SETTING_TOPIC));
 		initialized = true;

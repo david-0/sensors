@@ -8,8 +8,11 @@ import java.util.concurrent.ExecutionException;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
+import org.sensors.backend.device.Button;
+import org.sensors.backend.device.DigialOutputDevice;
 import org.sensors.backend.device.SensorMcp9808;
 import org.sensors.backend.device.SensorOneWireTemp;
+import org.sensors.backend.device.WlanControlOutputDevice;
 import org.sensors.backend.sensor.ina219.SensorIna219;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,12 +40,21 @@ public class App {
 			throws UnsupportedBusNumberException, IOException, InterruptedException, ExecutionException {
 		I2CBus bus = I2CFactory.getInstance(I2CBus.BUS_1);
 		W1Master master = new W1Master();
+		final GpioController gpio = GpioFactory.getInstance();
 
 		Controller controller = new Controller(new KafkaProducer<>(App.createProducerProperties()),
 				new KafkaConsumer<>(createConsumerProperties()));
 		createMcp9808Sensors(bus).stream().forEach(controller::addIntervalBasedSource);
-		createIna219Sensors(bus).stream().forEach(controller::addIntervalBasedSource);
+		createIna219Sensors(bus).stream()//
+				.peek(controller::addStateUpdaterSource) //
+				.forEach(controller::addIntervalBasedSource);
 		createOneWireSensors(master).stream().forEach(controller::addIntervalBasedSource);
+		controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_03, PinPullResistance.PULL_DOWN, "led-button"));
+		controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_00, PinPullResistance.PULL_DOWN, "wlan-button"));
+		controller.addSettingChangeEventListener(new DigialOutputDevice(gpio, RaspiPin.GPIO_02, "wlan-button-led"));
+		WlanControlOutputDevice wlanControlOutputDevice = new WlanControlOutputDevice("wlan");
+		controller.addSettingChangeEventListener(wlanControlOutputDevice);
+		controller.addEventBasedSource(wlanControlOutputDevice);
 		controller.init();
 		controller.run();
 		logger.info("controller started");
