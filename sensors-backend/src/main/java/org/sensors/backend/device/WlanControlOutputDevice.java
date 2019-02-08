@@ -20,6 +20,10 @@ public class WlanControlOutputDevice implements ChangeEventListener, EventBasedS
 		this.id = id;
 	}
 
+	public WlanControlOutputDevice init() {
+		return this;
+	}
+
 	/**
 	 * valid values are: on = WLAN-ON and off =WLAN_OFF
 	 */

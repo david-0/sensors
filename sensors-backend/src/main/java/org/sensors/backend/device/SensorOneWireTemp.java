@@ -21,6 +21,7 @@ public class SensorOneWireTemp implements IntervalBasedSource {
 	private String description;
 	private Duration interval;
 	private Consumer<Duration> intervalChangeListener;
+	private W1Master w1Master;
 
 	public SensorOneWireTemp(W1Master w1Master, String sensorId, String id, String description) {
 		this(w1Master, sensorId, id, description, Duration.ofMillis(5000));
@@ -28,10 +29,14 @@ public class SensorOneWireTemp implements IntervalBasedSource {
 
 	public SensorOneWireTemp(W1Master w1Master, String sensorId, String id, String description,
 			Duration defaultInterval) {
+		this.w1Master = w1Master;
 		this.sensorId = sensorId;
 		this.id = id;
 		this.description = description;
 		this.interval = defaultInterval;
+	}
+
+	public SensorOneWireTemp init() {
 		List<W1Device> w1Devices = w1Master.getDevices(TmpDS18B20DeviceType.FAMILY_CODE);
 		for (W1Device device : w1Devices) {
 			if (device.getId().trim().equals(sensorId)) {
@@ -42,12 +47,14 @@ public class SensorOneWireTemp implements IntervalBasedSource {
 		if (this.device == null) {
 			throw new RuntimeException("device with '" + sensorId + "' konnte nicht gefunden werden.");
 		}
+		return this;
 	}
 
 	public Float readTemperature() {
 		return Float.valueOf((float) tempSensor.getTemperature());
 	}
 
+	@Override
 	public String getId() {
 		return id;
 	}

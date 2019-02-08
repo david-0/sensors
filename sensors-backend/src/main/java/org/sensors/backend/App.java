@@ -47,9 +47,10 @@ public class App {
 			controller
 					.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_03, PinPullResistance.PULL_DOWN, "led-button"));
 			controller.addEventBasedSource(
-					new Button(gpio, RaspiPin.GPIO_00, PinPullResistance.PULL_DOWN, "wlan-button"));
-			controller.addSettingChangeEventListener(new DigialOutputDevice(gpio, RaspiPin.GPIO_02, "wlan-button-led"));
-			Stream.of(new WlanControlOutputDevice("wlan")) //
+					new Button(gpio, RaspiPin.GPIO_00, PinPullResistance.PULL_DOWN, "wlan-button").init());
+			controller.addSettingChangeEventListener(
+					new DigialOutputDevice(gpio, RaspiPin.GPIO_02, "wlan-button-led").init());
+			Stream.of(new WlanControlOutputDevice("wlan").init()) //
 					.peek(controller::addSettingChangeEventListener) //
 					.forEach(controller::addEventBasedSource);
 			controller.init();
@@ -69,16 +70,16 @@ public class App {
 
 	private static List<SensorIna219> createIna219Sensors(I2CBus bus) {
 		return Arrays.asList(//
-				new SensorIna219(bus, 0x40, "ina219-led", "INA219 1 - LED"),
-				new SensorIna219(bus, 0x41, "ina219-raspi", "INA219 2 - Raspi"),
-				new SensorIna219(bus, 0x45, "ina219-input", "INA219 3 - Input"));
+				new SensorIna219(bus, 0x40, "ina219-led", "INA219 1 - LED").init(),
+				new SensorIna219(bus, 0x41, "ina219-raspi", "INA219 2 - Raspi").init(),
+				new SensorIna219(bus, 0x45, "ina219-input", "INA219 3 - Input").init());
 	}
 
 	private static List<SensorOneWireTemp> createOneWireSensors(W1Master master) {
 		return Arrays.asList(//
-				new SensorOneWireTemp(master, "28-0000046d50e7", "T1-aussen", "Abwassertank aussen"),
-				new SensorOneWireTemp(master, "28-0000093001f5", "T2-luft", "Aussentemperatur"),
-				new SensorOneWireTemp(master, "28-00000a25c18f", "T3-innen", "Abwassertank innen"));
+				new SensorOneWireTemp(master, "28-0000046d50e7", "T1-aussen", "Abwassertank aussen").init(),
+				new SensorOneWireTemp(master, "28-0000093001f5", "T2-luft", "Aussentemperatur").init(),
+				new SensorOneWireTemp(master, "28-00000a25c18f", "T3-innen", "Abwassertank innen").init());
 	}
 
 	private static Properties createConsumerProperties() {
