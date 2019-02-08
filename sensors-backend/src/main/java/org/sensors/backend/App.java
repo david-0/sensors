@@ -39,27 +39,32 @@ public class App {
 
 	public static void main(String[] args)
 			throws UnsupportedBusNumberException, IOException, InterruptedException, ExecutionException {
-		final I2CBus bus = I2CFactory.getInstance(I2CBus.BUS_1);
-		final W1Master master = new W1Master();
-		final GpioController gpio = GpioFactory.getInstance();
+		try {
+			final I2CBus bus = I2CFactory.getInstance(I2CBus.BUS_1);
+			final W1Master master = new W1Master();
+			final GpioController gpio = GpioFactory.getInstance();
 
-		Controller controller = new Controller(new KafkaProducer<>(App.createProducerProperties()),
-				new KafkaConsumer<>(createConsumerProperties()));
-		createMcp9808Sensors(bus).stream().forEach(controller::addIntervalBasedSource);
-		createIna219Sensors(bus).stream()//
-				.peek(controller::addStateUpdaterSource) //
-				.forEach(controller::addIntervalBasedSource);
-		createOneWireSensors(master).stream().forEach(controller::addIntervalBasedSource);
-		controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_03, PinPullResistance.PULL_DOWN, "led-button"));
-		controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_00, PinPullResistance.PULL_DOWN, "wlan-button"));
-		controller.addSettingChangeEventListener(new DigialOutputDevice(gpio, RaspiPin.GPIO_02, "wlan-button-led"));
-		Stream.of(new WlanControlOutputDevice("wlan")) //
-				.peek(controller::addSettingChangeEventListener) //
-				.forEach(controller::addEventBasedSource);
-		controller.init();
-		controller.run();
-		logger.info("controller started");
-		initGpio();
+			Controller controller = new Controller(new KafkaProducer<>(App.createProducerProperties()),
+					new KafkaConsumer<>(createConsumerProperties()));
+			createMcp9808Sensors(bus).stream().forEach(controller::addIntervalBasedSource);
+			createIna219Sensors(bus).stream()//
+					.peek(controller::addStateUpdaterSource) //
+					.forEach(controller::addIntervalBasedSource);
+			createOneWireSensors(master).stream().forEach(controller::addIntervalBasedSource);
+			controller
+					.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_03, PinPullResistance.PULL_DOWN, "led-button"));
+			controller.addEventBasedSource(
+					new Button(gpio, RaspiPin.GPIO_00, PinPullResistance.PULL_DOWN, "wlan-button"));
+			controller.addSettingChangeEventListener(new DigialOutputDevice(gpio, RaspiPin.GPIO_02, "wlan-button-led"));
+			Stream.of(new WlanControlOutputDevice("wlan")) //
+					.peek(controller::addSettingChangeEventListener) //
+					.forEach(controller::addEventBasedSource);
+			controller.init();
+			controller.run();
+			logger.info("controller started");
+		} catch (Exception e) {
+			logger.error("Abort main", e);
+		}
 	}
 
 	private static List<SensorMcp9808> createMcp9808Sensors(I2CBus bus) {
