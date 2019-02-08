@@ -85,8 +85,4 @@ public class EventStore {
 		return first;
 	}
 
-	public boolean hasId(String id) {
-		return lookup.containsKey(id);
-	}
-
 }
