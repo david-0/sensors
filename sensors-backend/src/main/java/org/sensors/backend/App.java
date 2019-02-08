@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Stream;
 
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -38,8 +39,8 @@ public class App {
 
 	public static void main(String[] args)
 			throws UnsupportedBusNumberException, IOException, InterruptedException, ExecutionException {
-		I2CBus bus = I2CFactory.getInstance(I2CBus.BUS_1);
-		W1Master master = new W1Master();
+		final I2CBus bus = I2CFactory.getInstance(I2CBus.BUS_1);
+		final W1Master master = new W1Master();
 		final GpioController gpio = GpioFactory.getInstance();
 
 		Controller controller = new Controller(new KafkaProducer<>(App.createProducerProperties()),
@@ -52,9 +53,9 @@ public class App {
 		controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_03, PinPullResistance.PULL_DOWN, "led-button"));
 		controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_00, PinPullResistance.PULL_DOWN, "wlan-button"));
 		controller.addSettingChangeEventListener(new DigialOutputDevice(gpio, RaspiPin.GPIO_02, "wlan-button-led"));
-		WlanControlOutputDevice wlanControlOutputDevice = new WlanControlOutputDevice("wlan");
-		controller.addSettingChangeEventListener(wlanControlOutputDevice);
-		controller.addEventBasedSource(wlanControlOutputDevice);
+		Stream.of(new WlanControlOutputDevice("wlan")) //
+				.peek(controller::addSettingChangeEventListener) //
+				.forEach(controller::addEventBasedSource);
 		controller.init();
 		controller.run();
 		logger.info("controller started");
