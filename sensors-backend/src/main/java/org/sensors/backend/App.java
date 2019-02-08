@@ -20,13 +20,8 @@ import org.slf4j.LoggerFactory;
 
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
-import com.pi4j.io.gpio.GpioPinDigitalInput;
-import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.PinPullResistance;
-import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.RaspiPin;
-import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
-import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CFactory;
 import com.pi4j.io.i2c.I2CFactory.UnsupportedBusNumberException;
@@ -34,8 +29,6 @@ import com.pi4j.io.w1.W1Master;
 
 public class App {
 	private static final Logger logger = LoggerFactory.getLogger(App.class);
-
-	private static boolean wlanOn;
 
 	public static void main(String[] args)
 			throws UnsupportedBusNumberException, IOException, InterruptedException, ExecutionException {
@@ -85,39 +78,6 @@ public class App {
 				new SensorOneWireTemp(master, "28-0000046d50e7", "T1-aussen", "Abwassertank aussen"),
 				new SensorOneWireTemp(master, "28-0000093001f5", "T2-luft", "Aussentemperatur"),
 				new SensorOneWireTemp(master, "28-00000a25c18f", "T3-innen", "Abwassertank innen"));
-	}
-
-	private static void initGpio() {
-		final GpioController gpio = GpioFactory.getInstance();
-
-		final GpioPinDigitalInput ledButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_03,
-				PinPullResistance.PULL_DOWN);
-		ledButton.setShutdownOptions(true);
-		ledButton.addListener(new GpioPinListenerDigital() {
-			@Override
-			public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
-				System.out.println(
-						" --> GPIO PIN (LED Button) STATE CHANGE: " + event.getPin() + " = " + event.getState());
-			}
-
-		});
-
-		final GpioPinDigitalOutput wlanLED = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_02);
-		final GpioPinDigitalInput wlanButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_00,
-				PinPullResistance.PULL_DOWN);
-		wlanButton.setShutdownOptions(true);
-		wlanButton.addListener(new GpioPinListenerDigital() {
-			@Override
-			public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
-				System.out.println(
-						" --> GPIO PIN (WLAN Button) STATE CHANGE: " + event.getPin() + " = " + event.getState());
-				if (event.getState().equals(PinState.LOW)) {
-					wlanOn = !wlanOn;
-				}
-				wlanLED.setState(wlanOn);
-			}
-
-		});
 	}
 
 	private static Properties createConsumerProperties() {
