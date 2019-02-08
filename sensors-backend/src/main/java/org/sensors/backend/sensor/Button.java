@@ -1,6 +1,8 @@
-package org.sensors.backend.sensor.handler;
+package org.sensors.backend.sensor;
 
 import java.util.function.BiConsumer;
+
+import org.sensors.backend.sensor.handler.EventBasedSource;
 
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
