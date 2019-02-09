@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
-import com.pi4j.io.gpio.PinPullResistance;
 import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CFactory;
@@ -44,10 +43,8 @@ public class App {
 					.peek(controller::addStateUpdaterSource) //
 					.forEach(controller::addIntervalBasedSource);
 			createOneWireSensors(master).stream().forEach(controller::addIntervalBasedSource);
-			controller.addEventBasedSource(
-					new Button(gpio, RaspiPin.GPIO_03, PinPullResistance.PULL_DOWN, "led-button").init());
-			controller.addEventBasedSource(
-					new Button(gpio, RaspiPin.GPIO_00, PinPullResistance.PULL_DOWN, "wlan-button").init());
+			controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_03, true, "led-button").init());
+			controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_00, false, "wlan-button").init());
 			controller.addSettingChangeEventListener(
 					new DigialOutputDevice(gpio, RaspiPin.GPIO_02, "wlan-button-led").init());
 			Stream.of(new WlanControlOutputDevice("wlan").init()) //
