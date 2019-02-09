@@ -15,6 +15,7 @@ import org.sensors.backend.device.SensorMcp9808;
 import org.sensors.backend.device.SensorOneWireTemp;
 import org.sensors.backend.device.WlanControlOutputDevice;
 import org.sensors.backend.device.ina219.SensorIna219;
+import org.sensors.backend.device.ledstrip.LedStrip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +48,7 @@ public class App {
 			controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_00, false, "wlan-button").init());
 			controller.addSettingChangeEventListener(
 					new DigialOutputDevice(gpio, RaspiPin.GPIO_02, "wlan-button-led").init());
+			controller.addSettingChangeEventListener(new LedStrip("led-strip", 8).init());
 			Stream.of(new WlanControlOutputDevice("wlan").init()) //
 					.peek(controller::addSettingChangeEventListener) //
 					.forEach(controller::addEventBasedSource);
