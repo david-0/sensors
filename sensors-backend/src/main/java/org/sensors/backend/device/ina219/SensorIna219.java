@@ -1,4 +1,4 @@
-package org.sensors.backend.sensor.ina219;
+package org.sensors.backend.device.ina219;
 
 import java.io.IOException;
 import java.time.Duration;

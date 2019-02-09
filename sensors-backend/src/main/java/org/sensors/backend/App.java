@@ -14,7 +14,7 @@ import org.sensors.backend.device.DigialOutputDevice;
 import org.sensors.backend.device.SensorMcp9808;
 import org.sensors.backend.device.SensorOneWireTemp;
 import org.sensors.backend.device.WlanControlOutputDevice;
-import org.sensors.backend.sensor.ina219.SensorIna219;
+import org.sensors.backend.device.ina219.SensorIna219;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
