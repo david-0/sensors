@@ -15,10 +15,15 @@ import org.sensors.backend.device.SensorMcp9808;
 import org.sensors.backend.device.SensorOneWireTemp;
 import org.sensors.backend.device.WlanControlOutputDevice;
 import org.sensors.backend.device.ina219.SensorIna219;
+import org.sensors.backend.device.ledstrip.AllLedChange;
 import org.sensors.backend.device.ledstrip.LedStrip;
+import org.sensors.backend.device.ledstrip.MultiLedChange;
+import org.sensors.backend.device.ledstrip.OneLedChange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.mbelling.ws281x.Color;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.RaspiPin;
@@ -54,6 +59,10 @@ public class App {
 					.forEach(controller::addEventBasedSource);
 			controller.init();
 			controller.run();
+			logger.info("One: {}", new ObjectMapper().writeValueAsString(new OneLedChange(5, Color.DARK_GRAY)));
+			logger.info("All: {}", new ObjectMapper().writeValueAsString(new AllLedChange(Color.MAGENTA)));
+			logger.info("Multi: {}", new ObjectMapper().writeValueAsString(new MultiLedChange(
+					Arrays.asList(new OneLedChange(1, Color.RED), new OneLedChange(2, Color.GREEN)))));
 			controller.waitMainThread();
 			logger.info("controller started");
 		} catch (Exception e) {
