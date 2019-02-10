@@ -18,5 +18,6 @@
 		<module>sensors-web</module>
 		<module>sensors-backend</module>
 		<module>sensors-logic</module>
+		<module>sensors-api</module>
 	</modules>
 </project>
