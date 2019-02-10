@@ -40,25 +40,25 @@ public class LedStrip implements ChangeEventListener {
 	public boolean onSettingChange(String key, String value) {
 		try {
 			if ((id + "-one").equals(key)) {
-				OneLedChange one = new ObjectMapper().readValue(value, OneLedChange.class);
+				OneLedChange one = mapper.readValue(value, OneLedChange.class);
 				leds.setPixel(one.getNumber(), one.getColor());
 				leds.render();
 				return true;
 			}
 			if ((id + "-all").equals(key)) {
-				AllLedChange all = new ObjectMapper().readValue(value, AllLedChange.class);
+				AllLedChange all = mapper.readValue(value, AllLedChange.class);
 				leds.setStrip(all.getColor());
 				leds.render();
 				return true;
 			}
 			if ((id + "-multi").equals(key)) {
-				MultiLedChange multi = new ObjectMapper().readValue(value, MultiLedChange.class);
+				MultiLedChange multi = mapper.readValue(value, MultiLedChange.class);
 				multi.getList().stream().forEach(o -> leds.setPixel(o.getNumber(), o.getColor()));
 				leds.render();
 				return true;
 			}
 			if ((id + "-brightness").equals(key)) {
-				BrightnessChange brightness = new ObjectMapper().readValue(value, BrightnessChange.class);
+				BrightnessChange brightness = mapper.readValue(value, BrightnessChange.class);
 				leds.setBrightness(brightness.getBrightness());
 				if (brightness.isRender()) {
 					leds.render();
