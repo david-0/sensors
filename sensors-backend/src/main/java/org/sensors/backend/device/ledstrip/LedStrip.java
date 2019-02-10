@@ -8,13 +8,34 @@ import org.sensors.backend.json.mixin.BrightnessChangeMixin;
 import org.sensors.backend.json.mixin.ColorMixin;
 import org.sensors.backend.json.mixin.MultiLedChangeMixin;
 import org.sensors.backend.json.mixin.OneLedChangeMixin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.mbelling.ws281x.Color;
 import com.github.mbelling.ws281x.LedStripType;
 import com.github.mbelling.ws281x.Ws281xLedStrip;
 
+/**
+ * settings for the led-strip:<br/>
+ * <i>At least the last setting of every key is available after restart,
+ * possible more than one. The order is always respected.</i>
+ * <ul>
+ * <li><b>key:</b> led-strip-one-[0-n]<br/>
+ * <b>value:</b> {@link OneLedChange} in JSON</li>
+ * <li><b>key:</b> led-strip-all<br/>
+ * <b>value:</b> {@link AllLedChange} in JSON</li>
+ * <li><b>key:</b> led-strip-multi<br/>
+ * <b>value:</b> {@link MultiLedChange} in JSON</li>
+ * <li><b>key:</b> led-strip-brightness<br/>
+ * <b>value:</b> {@link BrightnessChange} in JSON</li>
+ * </ul>
+ */
+
 public class LedStrip implements ChangeEventListener {
+
+	private static final Logger logger = LoggerFactory.getLogger(LedStrip.class);
+
 	private String id;
 	private int ledCount;
 	private Ws281xLedStrip leds;
@@ -32,14 +53,14 @@ public class LedStrip implements ChangeEventListener {
 	}
 
 	public LedStrip init() {
-		leds = new Ws281xLedStrip(ledCount, 18, 800000, 10, 255, 0, false, LedStripType.WS2811_STRIP_GBR, true);
+		leds = new Ws281xLedStrip(ledCount, 18, 800000, 10, 255, 0, false, LedStripType.WS2811_STRIP_GRB, true);
 		return this;
 	}
 
 	@Override
 	public boolean onSettingChange(String key, String value) {
 		try {
-			if ((id + "-one").equals(key)) {
+			if (key.startsWith(id + "-one-")) {
 				OneLedChange one = mapper.readValue(value, OneLedChange.class);
 				leds.setPixel(one.getNumber(), one.getColor());
 				leds.render();
@@ -65,10 +86,11 @@ public class LedStrip implements ChangeEventListener {
 				}
 				return true;
 			}
+			return false;
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			logger.warn("ignore key: " + key + ", value: " + value, e);
+			return true;
 		}
-		return false;
 	}
 
 }
