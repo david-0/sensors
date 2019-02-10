@@ -1,4 +1,4 @@
-package org.sensors.backend.device.ledstrip;
+package org.sensors.api;
 
 import java.util.List;
 

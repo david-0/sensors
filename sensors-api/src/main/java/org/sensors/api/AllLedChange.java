@@ -1,4 +1,4 @@
-package org.sensors.backend.device.ledstrip;
+package org.sensors.api;
 
 import com.github.mbelling.ws281x.Color;
 

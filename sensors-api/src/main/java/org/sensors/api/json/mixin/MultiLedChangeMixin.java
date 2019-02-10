@@ -1,8 +1,8 @@
-package org.sensors.backend.json.mixin;
+package org.sensors.api.json.mixin;
 
 import java.util.List;
 
-import org.sensors.backend.device.ledstrip.OneLedChange;
+import org.sensors.api.OneLedChange;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

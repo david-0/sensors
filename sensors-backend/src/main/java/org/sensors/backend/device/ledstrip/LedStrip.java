@@ -2,12 +2,16 @@ package org.sensors.backend.device.ledstrip;
 
 import java.io.IOException;
 
+import org.sensors.api.AllLedChange;
+import org.sensors.api.BrightnessChange;
+import org.sensors.api.MultiLedChange;
+import org.sensors.api.OneLedChange;
+import org.sensors.api.json.mixin.AllLedChangeMixin;
+import org.sensors.api.json.mixin.BrightnessChangeMixin;
+import org.sensors.api.json.mixin.ColorMixin;
+import org.sensors.api.json.mixin.MultiLedChangeMixin;
+import org.sensors.api.json.mixin.OneLedChangeMixin;
 import org.sensors.backend.ChangeEventListener;
-import org.sensors.backend.json.mixin.AllLedChangeMixin;
-import org.sensors.backend.json.mixin.BrightnessChangeMixin;
-import org.sensors.backend.json.mixin.ColorMixin;
-import org.sensors.backend.json.mixin.MultiLedChangeMixin;
-import org.sensors.backend.json.mixin.OneLedChangeMixin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,4 +1,4 @@
-package org.sensors.backend.device.ledstrip;
+package org.sensors.api;
 
 public class BrightnessChange {
 	private final int brightness;

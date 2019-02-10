@@ -1,4 +1,4 @@
-package org.sensors.backend.json.mixin;
+package org.sensors.api.json.mixin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
