@@ -15,11 +15,11 @@ import org.sensors.api.MultiLedChange;
 import org.sensors.api.OneLedChange;
 import org.sensors.backend.device.Button;
 import org.sensors.backend.device.DigialOutputDevice;
+import org.sensors.backend.device.LedStrip;
 import org.sensors.backend.device.SensorMcp9808;
 import org.sensors.backend.device.SensorOneWireTemp;
 import org.sensors.backend.device.WlanControlOutputDevice;
 import org.sensors.backend.device.ina219.SensorIna219;
-import org.sensors.backend.device.ledstrip.LedStrip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
