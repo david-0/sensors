@@ -14,9 +14,19 @@
 	</properties>
 	<dependencies>
 		<dependency>
+			<groupId>org.myprojects</groupId>
+			<artifactId>sensors-api</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-streams</artifactId>
 			<version>2.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j-impl</artifactId>
+			<version>2.11.2</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

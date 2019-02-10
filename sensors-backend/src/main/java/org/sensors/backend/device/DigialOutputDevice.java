@@ -1,12 +1,16 @@
 package org.sensors.backend.device;
 
 import org.sensors.backend.ChangeEventListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.Pin;
 
 public class DigialOutputDevice implements ChangeEventListener {
+	private static final Logger logger = LoggerFactory.getLogger(DigialOutputDevice.class);
+
 	private GpioController gpio;
 	private Pin pin;
 	private String id;
@@ -34,7 +38,7 @@ public class DigialOutputDevice implements ChangeEventListener {
 			} else if ("1".equals(value)) {
 				outputDevice.setState(true);
 			} else {
-				throw new RuntimeException("Invalid value '" + value + "' for digitalOutputDevice with id '" + key
+				logger.warn("Ignore: Invalid value '" + value + "' for digitalOutputDevice with id '" + key
 						+ "', valid values: [0, 1]");
 			}
 			return true;

@@ -73,6 +73,7 @@ public class LedStrip implements ChangeEventListener {
 			if ((id + "-all").equals(key)) {
 				AllLedChange all = mapper.readValue(value, AllLedChange.class);
 				leds.setStrip(all.getColor());
+				leds.setBrightness(all.getBrightness());
 				leds.render();
 				return true;
 			}

@@ -10,9 +10,6 @@ import java.util.stream.Stream;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
-import org.sensors.api.AllLedChange;
-import org.sensors.api.MultiLedChange;
-import org.sensors.api.OneLedChange;
 import org.sensors.backend.device.Button;
 import org.sensors.backend.device.DigialOutputDevice;
 import org.sensors.backend.device.LedStrip;
@@ -23,8 +20,6 @@ import org.sensors.backend.device.ina219.SensorIna219;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.mbelling.ws281x.Color;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.RaspiPin;
@@ -60,10 +55,6 @@ public class App {
 					.forEach(controller::addEventBasedSource);
 			controller.init();
 			controller.run();
-			logger.info("One: {}", new ObjectMapper().writeValueAsString(new OneLedChange(5, Color.DARK_GRAY)));
-			logger.info("All: {}", new ObjectMapper().writeValueAsString(new AllLedChange(Color.MAGENTA)));
-			logger.info("Multi: {}", new ObjectMapper().writeValueAsString(new MultiLedChange(
-					Arrays.asList(new OneLedChange(1, Color.RED), new OneLedChange(2, Color.GREEN)))));
 			controller.waitMainThread();
 			logger.info("controller started");
 		} catch (Exception e) {
@@ -108,9 +99,6 @@ public class App {
 		Properties props = new Properties();
 		props.put("bootstrap.servers", "localhost:9092");
 		props.put("acks", "all");
-		props.put("delivery.timeout.ms", 30000);
-		props.put("batch.size", 16384);
-		props.put("linger.ms", 1);
 		props.put("buffer.memory", 33554432);
 		props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 		props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
