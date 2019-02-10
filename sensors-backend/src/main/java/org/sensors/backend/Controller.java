@@ -18,6 +18,7 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.TopicPartition;
 import org.sensors.backend.event.FrequencyEvent;
 import org.sensors.backend.event.IntervalEvent;
 import org.sensors.backend.sensor.handler.EventBasedSource;
@@ -88,7 +89,9 @@ public class Controller {
 		for (EventBasedSource source : eventBasedSources) {
 			source.onChange((id, state) -> sendMessage("events", id, state));
 		}
-		consumer.subscribe(Arrays.asList(SETTING_TOPIC));
+		TopicPartition topicPartition = new TopicPartition(SETTING_TOPIC, 0);
+		consumer.assign(Arrays.asList(topicPartition));
+		consumer.seekToBeginning(Arrays.asList(topicPartition));
 		initialized = true;
 	}
 
@@ -140,6 +143,7 @@ public class Controller {
 	}
 
 	private void onMessage(String key, String value) {
+		logger.info("onMessage: key={}, value={}", key, value);
 		Optional<ChangeEventListener> findAny = changeEventListeners.stream() //
 				.filter(l -> l.onSettingChange(key, value)).findAny();
 		if (!findAny.isPresent()) {
