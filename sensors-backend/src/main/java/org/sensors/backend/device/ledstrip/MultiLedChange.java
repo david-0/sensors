@@ -3,13 +3,13 @@ package org.sensors.backend.device.ledstrip;
 import java.util.List;
 
 public class MultiLedChange {
-	private List<OneLedChange> multiple;
+	private List<OneLedChange> list;
 
-	public MultiLedChange(List<OneLedChange> multiple) {
-		this.multiple = multiple;
+	public MultiLedChange(List<OneLedChange> list) {
+		this.list = list;
 	}
 
-	public List<OneLedChange> getMultiple() {
-		return multiple;
+	public List<OneLedChange> getList() {
+		return list;
 	}
 }
