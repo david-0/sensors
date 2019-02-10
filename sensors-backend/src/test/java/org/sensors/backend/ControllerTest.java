@@ -35,26 +35,23 @@ public class ControllerTest {
 	public void setup() throws IOException {
 		bus = mock(I2CBus.class);
 		I2CDevice device = mock(I2CDevice.class);
-		when(device.read(anyInt(), Mockito.any(), anyInt(), anyInt()))
-				.thenAnswer(new Answer<Object>() {
+		when(device.read(anyInt(), Mockito.any(), anyInt(), anyInt())).thenAnswer(new Answer<Object>() {
 
-					@Override
-					public Object answer(InvocationOnMock invocation)
-							throws Throwable {
-						byte[] data = (byte[]) invocation.getArgument(1);
-						data[0] = 10;
-						data[1] = 0;
-						return null;
-					}
-				});
+			@Override
+			public Object answer(InvocationOnMock invocation) throws Throwable {
+				byte[] data = (byte[]) invocation.getArgument(1);
+				data[0] = 10;
+				data[1] = 0;
+				return null;
+			}
+		});
 
 		when(bus.getDevice(anyInt())).thenReturn(device);
 		producer = mock(KafkaProducer.class);
 		consumer = mock(KafkaConsumer.class);
 		doAnswer(new Answer<ConsumerRecords<String, String>>() {
 			@Override
-			public ConsumerRecords<String, String> answer(
-					InvocationOnMock invocation) throws Throwable {
+			public ConsumerRecords<String, String> answer(InvocationOnMock invocation) throws Throwable {
 				Duration duration = invocation.getArgument(0);
 				TimeUnit.NANOSECONDS.sleep(duration.toNanos());
 				return new ConsumerRecords<>(Collections.emptyMap());
@@ -63,12 +60,11 @@ public class ControllerTest {
 	}
 
 	@Test
-	public void testRun() throws InterruptedException, ExecutionException,
-			JsonProcessingException {
+	public void testRun() throws InterruptedException, ExecutionException, JsonProcessingException {
 		Controller controller = new Controller(producer, consumer);
 		controller.init();
 		controller.run();
-		Thread.sleep(10000);
+		Thread.sleep(1000);
 		controller.stop();
 	}
 }
