@@ -8,8 +8,13 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.sensors.backend.event.Event;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EventStore {
+
+	private static Logger logger = LoggerFactory.getLogger(EventStore.class);
+
 	private SortedSet<Event> events = new TreeSet<Event>();
 	private Map<String, Event> lookup = new HashMap<>();
 	private Object o = new Object();
@@ -93,7 +98,10 @@ public class EventStore {
 		try {
 			Duration timeToWait = timeToWait(first);
 			while (isPositive(timeToWait)) {
-				o.wait(timeToWait.toMillis(), timeToWait.getNano());
+				long millis = timeToWait.toMillis();
+				int nanos = timeToWait.minusMillis(millis).getNano();
+				logger.info("wait s:{}, nano:{}", millis, nanos);
+				o.wait(millis, nanos);
 				timeToWait = timeToWait(first);
 			}
 		} catch (InterruptedException e) {
