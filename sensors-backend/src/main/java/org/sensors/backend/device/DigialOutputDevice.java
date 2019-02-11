@@ -1,6 +1,6 @@
 package org.sensors.backend.device;
 
-import org.sensors.backend.ChangeEventListener;
+import org.sensors.backend.sensor.handler.ChangeEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

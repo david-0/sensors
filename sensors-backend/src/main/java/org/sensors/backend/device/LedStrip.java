@@ -11,7 +11,7 @@ import org.sensors.api.json.mixin.BrightnessChangeMixin;
 import org.sensors.api.json.mixin.ColorMixin;
 import org.sensors.api.json.mixin.MultiLedChangeMixin;
 import org.sensors.api.json.mixin.OneLedChangeMixin;
-import org.sensors.backend.ChangeEventListener;
+import org.sensors.backend.sensor.handler.ChangeEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

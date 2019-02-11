@@ -2,8 +2,6 @@ package org.sensors.backend.sensor.handler;
 
 import java.util.function.Consumer;
 
-import org.sensors.backend.ChangeEventListener;
-
 public interface StateUpdater extends ChangeEventListener {
 
 	String getId();

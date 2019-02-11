@@ -21,6 +21,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.sensors.backend.event.FrequencyEvent;
 import org.sensors.backend.event.IntervalEvent;
+import org.sensors.backend.sensor.handler.ChangeEventListener;
 import org.sensors.backend.sensor.handler.EventBasedSource;
 import org.sensors.backend.sensor.handler.IntervalBasedSource;
 import org.sensors.backend.sensor.handler.StateUpdater;

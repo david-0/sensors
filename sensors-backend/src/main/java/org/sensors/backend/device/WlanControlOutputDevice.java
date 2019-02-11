@@ -3,7 +3,7 @@ package org.sensors.backend.device;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
-import org.sensors.backend.ChangeEventListener;
+import org.sensors.backend.sensor.handler.ChangeEventListener;
 import org.sensors.backend.sensor.handler.EventBasedSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
