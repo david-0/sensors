@@ -44,7 +44,8 @@ public class Controller {
 
 	private EventStore store;
 
-	private Future<?> runFuture;
+	private Future<?> execEventsFuture;
+	private Future<?> consumeMessagesFuture;
 
 	private KafkaConsumer<String, String> consumer;
 
@@ -101,13 +102,15 @@ public class Controller {
 	}
 
 	public void run() {
-		ExecutorService executor = Executors.newSingleThreadExecutor();
-		runFuture = executor.submit(this::runAsync);
+		ExecutorService executor = Executors.newFixedThreadPool(2);
+		execEventsFuture = executor.submit(this::execEvents);
+		consumeMessagesFuture = executor.submit(this::consumeMessages);
 	}
 
 	public void waitMainThread() {
 		try {
-			runFuture.get();
+			execEventsFuture.get();
+			consumeMessagesFuture.get();
 		} catch (InterruptedException | ExecutionException e) {
 			throw new RuntimeException(e);
 		}
@@ -119,15 +122,16 @@ public class Controller {
 		}
 	}
 
-	private void runAsync() {
+	private void execEvents() {
+		while (!execEventsFuture.isCancelled()) {
+			store.getNextEvent().exec();
+		}
+	}
+
+	private void consumeMessages() {
 		try {
 			while (true) {
-				Duration waitDuration = getNextWaitDuration();
-				if (waitDuration.isNegative() || waitDuration.isZero()) {
-					store.getNextEvent().exec();
-				} else {
-					consumeRecords(waitDuration);
-				}
+				consumeRecords(Duration.ofSeconds(1));
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
@@ -152,21 +156,10 @@ public class Controller {
 		}
 	}
 
-	private Duration getNextWaitDuration() {
-		Duration maxWaitDuration = Duration.ofSeconds(1);
-		if (store.hasNextEvent()) {
-			Duration toNextExec = Duration.between(ZonedDateTime.now(), store.getNextExecutionTime());
-			if (toNextExec.minus(maxWaitDuration).isNegative()) {
-				return toNextExec;
-			}
-		}
-		return maxWaitDuration;
-	}
-
 	public void stop() {
 		logger.info("wait for shutdown ...");
-		if (!runFuture.isCancelled()) {
-			runFuture.cancel(true);
+		if (!execEventsFuture.isCancelled()) {
+			execEventsFuture.cancel(true);
 		}
 		logger.info("shutdown completed");
 	}
