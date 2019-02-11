@@ -58,7 +58,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>org.sensors.backend.App</mainClass>
+							<mainClass>org.sensors.logic.Logic</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
