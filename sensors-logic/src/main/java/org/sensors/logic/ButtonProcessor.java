@@ -36,6 +36,8 @@ public class ButtonProcessor {
 
 	private final ObjectMapper mapper;
 
+	private KafkaStreams streams;
+
 	public ButtonProcessor() {
 		mapper = new ObjectMapper();
 		mapper.addMixIn(Color.class, ColorMixin.class);
@@ -58,8 +60,12 @@ public class ButtonProcessor {
 				.map((k, v) -> updateSettings(k, v)) //
 				.to("settings", Produced.with(Serdes.String(), Serdes.String()));
 
-		final KafkaStreams streams = new KafkaStreams(builder.build(), props);
+		streams = new KafkaStreams(builder.build(), props);
 		streams.start();
+	}
+
+	public void stop() {
+		streams.close();
 	}
 
 	private boolean wlanButtonCheck(final String k, final String v) {
@@ -106,4 +112,5 @@ public class ButtonProcessor {
 		}
 		return false;
 	}
+
 }
