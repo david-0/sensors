@@ -45,10 +45,10 @@ public class App {
 					.peek(controller::addStateUpdaterSource) //
 					.forEach(controller::addIntervalBasedSource);
 			createOneWireSensors(master).stream().forEach(controller::addIntervalBasedSource);
-			controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_03, true, "led-button").init());
-			controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_00, false, "wlan-button").init());
+			controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_27, true, "led-button").init());
+			controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_24, false, "wlan-button").init());
 			controller.addSettingChangeEventListener(
-					new DigialOutputDevice(gpio, RaspiPin.GPIO_02, "wlan-button-led").init());
+					new DigialOutputDevice(gpio, RaspiPin.GPIO_25, "wlan-button-led").init());
 			controller.addSettingChangeEventListener(new LedStrip("led-strip", 8).init());
 			Stream.of(new WlanControlOutputDevice("wlan").init()) //
 					.peek(controller::addSettingChangeEventListener) //
