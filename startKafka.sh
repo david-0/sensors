@@ -1,4 +1,8 @@
 #!/bin/bash
 
-nohup ../kafka_2.11-2.1.0/bin/zookeeper-server-start.sh ../kafka_2.11-2.1.0/config/zookeeper.properties 2>&1 > /dev/null < /dev/zero &
-nohup ../kafka_2.11-2.1.0/bin/kafka-server-start.sh ../kafka_2.11-2.1.0/config/server.properties 2>&1 > /dev/null < /dev/zero &
+cd "$(dirname "$0")"
+
+nohup ../kafka_2.11-2.1.0/bin/zookeeper-server-start.sh ../kafka_2.11-2.1.0/config/zookeeper.properties 2>&1 > logs/zookeeper.log < /dev/zero &
+nohup ../kafka_2.11-2.1.0/bin/kafka-server-start.sh ../kafka_2.11-2.1.0/config/server.properties 2>&1 > logs/server.log < /dev/zero &
+
+sudo nohup java -jar sensors-backend/target/sensors-backend-0.0.1-SNAPSHOT-jar-with-dependencies.jar 2>&1 > logs/backend.log < /dev/zero &
