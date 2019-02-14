@@ -17,8 +17,11 @@ public class App {
 	public static void main(String[] args) throws UnsupportedBusNumberException, IOException, InterruptedException {
 		final I2CBus bus = I2CFactory.getInstance(I2CBus.BUS_1);
 		I2CDevice device = bus.getDevice(0x04);
-		int readValue = readValue(device);
-		logger.info("Value: {}", readValue);
+		while (true) {
+			int readValue = readValue(device);
+			logger.info("Value: {}, calibrated: {}", readValue, readValue / 84.0);
+			Thread.sleep(100);
+		}
 	}
 
 	public static int readValue(I2CDevice device) {
@@ -28,8 +31,9 @@ public class App {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		logger.info("byte[0]: {}, byte[1]: {}", data[0], data[1]);
+		logger.info("byte[0]: {}, byte[1]: {}", Integer.toBinaryString(data[0] & 0xFF),
+				Integer.toBinaryString(data[1] & 0xFF));
 		// Convert the data to 12-bits
-		return ((data[0] & 0x0F) * 256 + (data[1] & 0xFF));
+		return ((data[1] & 0x0F) * 256 + (data[0] & 0xFF));
 	}
 }
