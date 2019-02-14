@@ -14,6 +14,7 @@ import org.sensors.backend.device.Button;
 import org.sensors.backend.device.DigialOutputDevice;
 import org.sensors.backend.device.LedStrip;
 import org.sensors.backend.device.SensorMcp9808;
+import org.sensors.backend.device.SensorMe2O2;
 import org.sensors.backend.device.SensorOneWireTemp;
 import org.sensors.backend.device.WlanControlOutputDevice;
 import org.sensors.backend.device.ina219.SensorIna219;
@@ -53,6 +54,8 @@ public class App {
 			Stream.of(new WlanControlOutputDevice("wlan").init()) //
 					.peek(controller::addSettingChangeEventListener) //
 					.forEach(controller::addEventBasedSource);
+
+			controller.addIntervalBasedSource(new SensorMe2O2(bus, 0x04, "o2", "O2 Sensor", 84.0));
 			controller.init();
 			controller.run();
 			controller.waitMainThread();
