@@ -15,7 +15,7 @@ public class BME280 {
 		// Create I2C bus
 		I2CBus bus = I2CFactory.getInstance(I2CBus.BUS_1);
 		// Get I2C device, BME280 I2C address is 0x76(108)
-		I2CDevice device = bus.getDevice(0x76);
+		I2CDevice device = bus.getDevice(0x77);
 
 		// Read 24 bytes of data from address 0x88(136)
 		byte[] b1 = new byte[24];
