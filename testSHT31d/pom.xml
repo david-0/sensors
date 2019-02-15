@@ -39,7 +39,7 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>org.myprojects.testSTH31d.App</mainClass>
+					<mainClass>org.myprojects.testSHT31d.App</mainClass>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -47,7 +47,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>org.myprojects.testSTH31d.App</mainClass>
+							<mainClass>org.myprojects.testSHT31d.App</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
