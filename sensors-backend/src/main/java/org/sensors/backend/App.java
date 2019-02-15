@@ -13,9 +13,11 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.sensors.backend.device.Button;
 import org.sensors.backend.device.DigialOutputDevice;
 import org.sensors.backend.device.LedStrip;
+import org.sensors.backend.device.SensorBME280;
 import org.sensors.backend.device.SensorMcp9808;
 import org.sensors.backend.device.SensorMe2O2;
 import org.sensors.backend.device.SensorOneWireTemp;
+import org.sensors.backend.device.SensorSHT31d;
 import org.sensors.backend.device.WlanControlOutputDevice;
 import org.sensors.backend.device.ina219.SensorIna219;
 import org.slf4j.Logger;
@@ -56,6 +58,9 @@ public class App {
 					.forEach(controller::addEventBasedSource);
 
 			controller.addIntervalBasedSource(new SensorMe2O2(bus, 0x04, "o2", "O2 Sensor", 84.0).init());
+			controller.addIntervalBasedSource(new SensorSHT31d(bus, 0x44, "sht31d", "temp / humidity Sensor").init());
+			controller.addIntervalBasedSource(
+					new SensorBME280(bus, 0x77, "bme280", "temp / humidity / pressure Sensor").init());
 			controller.init();
 			controller.run();
 			controller.waitMainThread();
