@@ -19,5 +19,6 @@
 		<module>sensors-backend</module>
 		<module>sensors-logic</module>
 		<module>sensors-api</module>
+		<module>testBME280</module>
 	</modules>
 </project>
