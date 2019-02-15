@@ -20,5 +20,6 @@
 		<module>sensors-logic</module>
 		<module>sensors-api</module>
 		<module>testBME280</module>
+		<module>testSHT31d</module>
 	</modules>
 </project>
