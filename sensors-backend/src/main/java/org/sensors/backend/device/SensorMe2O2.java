@@ -65,7 +65,7 @@ public class SensorMe2O2 implements IntervalBasedSource {
 	public Double readConcetration() {
 		byte[] data = new byte[2];
 		try {
-			device.read(0x00, data, 0, 2);
+			device.read(0x10, data, 0, 2);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
