@@ -22,4 +22,16 @@
 			<version>1.2-SNAPSHOT</version>
 		</dependency>
   </dependencies>
+  	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<configuration>
+					<mainClass>org.testBME280.BME280</mainClass>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
