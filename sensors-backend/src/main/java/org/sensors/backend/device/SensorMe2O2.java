@@ -6,11 +6,15 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.sensors.backend.sensor.handler.IntervalBasedSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 
 public class SensorMe2O2 implements IntervalBasedSource {
+
+	private static final Logger logger = LoggerFactory.getLogger(SensorMe2O2.class);
 
 	private I2CBus bus;
 	private I2CDevice device;
@@ -65,8 +69,10 @@ public class SensorMe2O2 implements IntervalBasedSource {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-
-		return Double.valueOf(((data[1] & 0x0F) * 256 + (data[0] & 0xFF)) / voltageCalibration);
+		int readValue = (data[1] & 0x0F) * 256 + (data[0] & 0xFF);
+		double calibratedValue = readValue / voltageCalibration;
+		logger.info("readValue: {}, calibrated: {}", readValue, calibratedValue);
+		return Double.valueOf(calibratedValue);
 	}
 
 	@Override
