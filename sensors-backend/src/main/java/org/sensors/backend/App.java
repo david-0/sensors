@@ -55,7 +55,7 @@ public class App {
 					.peek(controller::addSettingChangeEventListener) //
 					.forEach(controller::addEventBasedSource);
 
-			controller.addIntervalBasedSource(new SensorMe2O2(bus, 0x04, "o2", "O2 Sensor", 84.0));
+			controller.addIntervalBasedSource(new SensorMe2O2(bus, 0x04, "o2", "O2 Sensor", 84.0).init());
 			controller.init();
 			controller.run();
 			controller.waitMainThread();
