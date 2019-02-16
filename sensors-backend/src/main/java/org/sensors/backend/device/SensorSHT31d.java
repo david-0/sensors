@@ -45,8 +45,8 @@ public class SensorSHT31d implements IntervalBasedSource {
 			// Send high repeatability measurement command
 			// Command msb, command lsb
 			byte[] config = new byte[2];
-			config[0] = (byte) 0x2C;
-			config[1] = (byte) 0x06;
+			config[0] = (byte) 0x21;
+			config[1] = (byte) 0x30;
 			device.write(config, 0, 2);
 
 		} catch (IOException e) {
