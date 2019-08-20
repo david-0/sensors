@@ -1,6 +1,8 @@
 package org.sensors.logic;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.kafka.common.serialization.Serdes;
@@ -9,6 +11,7 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Produced;
 import org.sensors.api.AllLedChange;
 import org.sensors.api.BrightnessChange;
@@ -31,6 +34,10 @@ public class ButtonProcessor {
 
 	private static final String WLAN_BUTTON = "wlan-button";
 	private static final String LED_BUTTON = "led-button";
+	private static final String SETTINGS_TOPIC = "settings";
+	private static final String EVENTS_TOPIC = "events";
+	private static final String LED_STRIP_BRIGHTNESS = "led-strip-brightness";
+
 	private static final Class<Boolean> LED_BUTTON_CLASS = Boolean.class;
 	private static final Class<Boolean> WLAN_BUTTON_CLASS = Boolean.class;
 
@@ -50,18 +57,59 @@ public class ButtonProcessor {
 	public void run() {
 		final Properties props = new Properties();
 		props.put(StreamsConfig.APPLICATION_ID_CONFIG, "sensor-application");
-		props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "10.1.1.135:9092");
+		props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "[0:0:0:0:0:ffff:a01:19a]:9092");
 		props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 		props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 
 		final StreamsBuilder builder = new StreamsBuilder();
-		final KStream<String, String> events = builder.stream("events");
-		events.filter((k, v) -> ledButtonCheck(k, v) || wlanButtonCheck(k, v))//
-				.map((k, v) -> updateSettings(k, v)) //
-				.to("settings", Produced.with(Serdes.String(), Serdes.String()));
+//		KStream<String, String> settings = builder.<String, String>stream(SETTINGS_TOPIC);
 
+//		KTable<String, List<AllLedChange>> table = settings //
+//		KTable<String, List<AllLedChange>> s = settings //
+//				.filter(this::ledButtonCheck) //
+//				.map((k, v) -> new KeyValue<>(k, new AllLedChangeDeserializer().deserialize(null, v.getBytes())))
+//				.groupByKey().aggregate(this::initializer, this::aggreator);
+
+		wlanLedButton(builder);
 		streams = new KafkaStreams(builder.build(), props);
 		streams.start();
+	}
+
+	private List<AllLedChange> initializer() {
+		return Arrays.asList(new AllLedChange(0, Color.WHITE));
+	}
+
+	private List<AllLedChange> aggreator(String key, AllLedChange state, List<AllLedChange> aggregator) {
+		return Arrays.asList(aggregator.get(aggregator.size() - 1), state);
+	}
+
+	private void wlanLedButton(final StreamsBuilder builder) {
+		KStream<String, String> settings = builder.<String, String>stream(SETTINGS_TOPIC);
+		KTable<String, String> settingsTable = settings //
+				.filter(this::wlanButtonCheck) //
+				.groupByKey() //
+				.aggregate(() -> "1", (k, v, a) -> v);
+
+		builder.<String, String>stream(EVENTS_TOPIC) //
+				.filter(this::wlanButtonCheck)//
+				.map((k, v) -> updateSettings(k, v)) //
+				.leftJoin(settingsTable, this::joiner) //
+				.to(SETTINGS_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
+	}
+
+	private String joiner(String streamValue, String tableValue) {
+		boolean s = "1".equals(streamValue);
+		boolean t = "1".equals(tableValue);
+		if (s && !t) {
+			return "0";
+		}
+		if (!s && !t) {
+			return "1";
+		}
+		if (s && t) {
+			return "1";
+		}
+		return "0";
 	}
 
 	public void stop() {
