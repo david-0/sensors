@@ -17,6 +17,7 @@ public class Button implements EventBasedSource {
 	private Pin pin;
 	private String id;
 	private boolean pressedHigh;
+	private boolean function = false;
 
 	public Button(GpioController gpio, Pin pin, boolean pressedHigh, String id) {
 		this.gpio = gpio;
@@ -39,7 +40,8 @@ public class Button implements EventBasedSource {
 				if (eventChange != null) {
 					boolean state = PinState.HIGH.equals(event.getState());
 					boolean pressed = pressedHigh ? state : !state;
-					eventChange.accept(id, Boolean.valueOf(pressed).toString());
+					function ^= pressed; 
+					eventChange.accept(id, Boolean.valueOf(function).toString());
 				}
 			}
 		});
