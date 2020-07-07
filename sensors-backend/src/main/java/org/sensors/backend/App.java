@@ -52,7 +52,7 @@ public class App {
 					ledStripSchrank.offAll();
 				}
 			});
-			
+
 			wlanButton.onChange(state -> {
 				logger.info("wlanButtonChanged: " + state.name());
 				if (ButtonState.ON.equals(state)) {
@@ -62,15 +62,13 @@ public class App {
 				if (ButtonState.OFF.equals(state)) {
 					wlanButtonLed.off();
 					wlanOutputDevice.switchWlanOff();
-				}				
+				}
 			});
 
 			StateStore stateStore = new StateStore();
 			Controller controller = new Controller((id, value) -> stateStore.update(id, value));
 			createMcp9808Sensors(bus).stream().forEach(controller::addIntervalBasedSource);
-			createIna219Sensors(bus).stream()//
-//					.peek(controller::addStateUpdaterSource) //
-					.forEach(controller::addIntervalBasedSource);
+			createIna219Sensors(bus).stream().forEach(controller::addIntervalBasedSource);
 			createOneWireSensors(master).stream().forEach(controller::addIntervalBasedSource);
 
 			controller.addIntervalBasedSource(new SensorMe2O2(bus, 0x04, "o2", "O2 Sensor", 84.0).init());
