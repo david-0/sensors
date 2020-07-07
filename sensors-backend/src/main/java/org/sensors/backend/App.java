@@ -16,6 +16,7 @@ import org.sensors.backend.device.SensorSHT31d;
 import org.sensors.backend.device.WlanControlOutputDevice;
 import org.sensors.backend.device.ina219.SensorIna219;
 import org.sensors.logic.ButtonState;
+import org.sensors.logic.LedButtonProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,21 +38,16 @@ public class App {
 			final W1Master master = new W1Master();
 			final GpioController gpio = GpioFactory.getInstance();
 
+			
 			LedStrip ledStripSchrank = new LedStrip(8).init();
 			Button ledButton = new Button(gpio, RaspiPin.GPIO_27, true).init();
 			Button wlanButton = new Button(gpio, RaspiPin.GPIO_24, false).init();
 			DigialOutputDevice wlanButtonLed = new DigialOutputDevice(gpio, RaspiPin.GPIO_25).init();
 			WlanControlOutputDevice wlanOutputDevice = new WlanControlOutputDevice();
+			
+			LedButtonProcessor ledButtonProcessor = new LedButtonProcessor(ledStripSchrank);
 
-			ledButton.onChange(state -> {
-				logger.info("ledButtonChanged: " + state.name());
-				if (ButtonState.ON.equals(state)) {
-					ledStripSchrank.onAll();
-				}
-				if (ButtonState.OFF.equals(state)) {
-					ledStripSchrank.offAll();
-				}
-			});
+			ledButton.onChange(ledButtonProcessor::update);
 
 			wlanButton.onChange(state -> {
 				logger.info("wlanButtonChanged: " + state.name());

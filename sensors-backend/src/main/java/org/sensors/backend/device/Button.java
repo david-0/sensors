@@ -16,7 +16,6 @@ public class Button {
 	private Consumer<ButtonState> eventChange;
 	private Pin pin;
 	private boolean pressedHigh;
-	private boolean function = false;
 
 	public Button(GpioController gpio, Pin pin, boolean pressedHigh) {
 		this.gpio = gpio;
@@ -37,8 +36,7 @@ public class Button {
 				if (eventChange != null) {
 					boolean state = PinState.HIGH.equals(event.getState());
 					boolean pressed = pressedHigh ? state : !state;
-					function ^= pressed; 
-					eventChange.accept(function?ButtonState.ON:ButtonState.OFF);
+					eventChange.accept(pressed?ButtonState.ON:ButtonState.OFF);
 				}
 			}
 		});
