@@ -3,13 +3,8 @@ package org.sensors.backend;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Stream;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
 import org.sensors.backend.device.Button;
 import org.sensors.backend.device.DigialOutputDevice;
 import org.sensors.backend.device.LedStrip;
@@ -20,6 +15,7 @@ import org.sensors.backend.device.SensorOneWireTemp;
 import org.sensors.backend.device.SensorSHT31d;
 import org.sensors.backend.device.WlanControlOutputDevice;
 import org.sensors.backend.device.ina219.SensorIna219;
+import org.sensors.logic.ButtonState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,21 +37,41 @@ public class App {
 			final W1Master master = new W1Master();
 			final GpioController gpio = GpioFactory.getInstance();
 
-			Controller controller = new Controller(new KafkaProducer<>(App.createProducerProperties()),
-					new KafkaConsumer<>(createConsumerProperties()));
+			LedStrip ledStripSchrank = new LedStrip(8).init();
+			Button ledButton = new Button(gpio, RaspiPin.GPIO_27, true).init();
+			Button wlanButton = new Button(gpio, RaspiPin.GPIO_24, false).init();
+			DigialOutputDevice wlanButtonLed = new DigialOutputDevice(gpio, RaspiPin.GPIO_25).init();
+			WlanControlOutputDevice wlanOutputDevice = new WlanControlOutputDevice();
+
+			ledButton.onChange(state -> {
+				logger.info("ledButtonChanged: " + state.name());
+				if (ButtonState.ON.equals(state)) {
+					ledStripSchrank.onAll();
+				}
+				if (ButtonState.OFF.equals(state)) {
+					ledStripSchrank.offAll();
+				}
+			});
+			
+			wlanButton.onChange(state -> {
+				logger.info("wlanButtonChanged: " + state.name());
+				if (ButtonState.ON.equals(state)) {
+					wlanButtonLed.on();
+					wlanOutputDevice.switchWlanOff();
+				}
+				if (ButtonState.OFF.equals(state)) {
+					wlanButtonLed.off();
+					wlanOutputDevice.switchWlanOff();
+				}				
+			});
+
+			StateStore stateStore = new StateStore();
+			Controller controller = new Controller((id, value) -> stateStore.update(id, value));
 			createMcp9808Sensors(bus).stream().forEach(controller::addIntervalBasedSource);
 			createIna219Sensors(bus).stream()//
-					.peek(controller::addStateUpdaterSource) //
+//					.peek(controller::addStateUpdaterSource) //
 					.forEach(controller::addIntervalBasedSource);
 			createOneWireSensors(master).stream().forEach(controller::addIntervalBasedSource);
-			controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_27, true, "led-button").init());
-			controller.addEventBasedSource(new Button(gpio, RaspiPin.GPIO_24, false, "wlan-button").init());
-			controller.addSettingChangeEventListener(
-					new DigialOutputDevice(gpio, RaspiPin.GPIO_25, "wlan-button-led").init());
-			controller.addSettingChangeEventListener(new LedStrip("led-strip", 8).init());
-			Stream.of(new WlanControlOutputDevice("wlan").init()) //
-					.peek(controller::addSettingChangeEventListener) //
-					.forEach(controller::addEventBasedSource);
 
 			controller.addIntervalBasedSource(new SensorMe2O2(bus, 0x04, "o2", "O2 Sensor", 84.0).init());
 			controller.addIntervalBasedSource(new SensorSHT31d(bus, 0x44, "sht31d", "temp / humidity Sensor").init());
@@ -88,28 +104,5 @@ public class App {
 				new SensorOneWireTemp(master, "28-0000046d50e7", "T1-aussen", "Abwassertank aussen").init(),
 				new SensorOneWireTemp(master, "28-0000093001f5", "T2-luft", "Aussentemperatur").init(),
 				new SensorOneWireTemp(master, "28-00000a25c18f", "T3-innen", "Abwassertank innen").init());
-	}
-
-	private static Properties createConsumerProperties() {
-		Properties props = new Properties();
-		props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-		props.put(ConsumerConfig.GROUP_ID_CONFIG, "test");
-		props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
-		props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
-		props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
-				"org.apache.kafka.common.serialization.StringDeserializer");
-		props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-				"org.apache.kafka.common.serialization.StringDeserializer");
-		return props;
-	}
-
-	private static Properties createProducerProperties() {
-		Properties props = new Properties();
-		props.put("bootstrap.servers", "localhost:9092");
-		props.put("acks", "all");
-		props.put("buffer.memory", 33554432);
-		props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-		props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-		return props;
 	}
 }

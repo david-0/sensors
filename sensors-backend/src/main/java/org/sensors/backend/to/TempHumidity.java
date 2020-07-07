@@ -17,5 +17,15 @@ public class TempHumidity {
 	public Double getTemp() {
 		return temp;
 	}
+	
+	@Override
+	public String toString() {
+		return  format(temp)+ "C°, "+format(humidity) +"% rel"; 
+	}
+	
+	private String format(Double value) {
+		return String.format("%.2f", value);
+	}
+
 
 }

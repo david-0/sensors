@@ -56,10 +56,9 @@ public class SensorSHT31d implements IntervalBasedSource {
 		return this;
 	}
 
-	@Override
-	public boolean onSettingChange(String key, String value) {
+	public boolean onSettingChange(String key, Object value) {
 		if (key.equals(id + "-intervalInMs")) {
-			setInterval(Duration.ofMillis(Integer.parseInt(value)));
+			setInterval(Duration.ofMillis(((Integer)value).intValue()));
 			return true;
 		}
 		return false;
@@ -103,7 +102,6 @@ public class SensorSHT31d implements IntervalBasedSource {
 		return interval;
 	}
 
-	@Override
 	public void setIntervalChangeListener(Consumer<Duration> listener) {
 		this.intervalChangeListener = listener;
 	}

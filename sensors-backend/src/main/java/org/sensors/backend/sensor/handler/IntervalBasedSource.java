@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public interface IntervalBasedSource extends ChangeEventListener {
+public interface IntervalBasedSource  {
 
 	Supplier<?> getDataProvider();
 
@@ -12,5 +12,5 @@ public interface IntervalBasedSource extends ChangeEventListener {
 
 	Duration getInterval();
 
-	void setIntervalChangeListener(Consumer<Duration> listener);
+//	void setIntervalChangeListener(Consumer<Duration> listener);
 }

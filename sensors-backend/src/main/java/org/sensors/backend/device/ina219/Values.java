@@ -29,4 +29,13 @@ public class Values {
 	public Float getAveragePowerPerSec() {
 		return averagePowerPerSec;
 	}
+	
+	@Override
+	public String toString() {
+		return  format(busVoltage)+ "V, "+format(current) +"A, "+format(power)+"W, "+format(averagePowerPerSec)+"W/s"; 
+	}
+	
+	private String format(Float value) {
+		return String.format("%.2f", value);
+	}
 }

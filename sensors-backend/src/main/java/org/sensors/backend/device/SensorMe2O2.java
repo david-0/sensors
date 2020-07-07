@@ -92,19 +92,17 @@ public class SensorMe2O2 implements IntervalBasedSource {
 		}
 	}
 
-	@Override
-	public boolean onSettingChange(String key, String value) {
+	public boolean onSettingChange(String key, Object value) {
 		if (key.equals(id + "-intervalInMs")) {
-			setInterval(Duration.ofMillis(Integer.parseInt(value)));
+			setInterval(Duration.ofMillis(((Integer)value).intValue()));
 			return true;
 		} else if (key.equals(id + "-voltageCalibration")) {
-			voltageCalibration = Double.parseDouble(value);
+			voltageCalibration = ((Double)value).doubleValue();
 			return true;
 		}
 		return false;
 	}
 
-	@Override
 	public void setIntervalChangeListener(Consumer<Duration> listener) {
 		this.intervalChangeListener = listener;
 	}

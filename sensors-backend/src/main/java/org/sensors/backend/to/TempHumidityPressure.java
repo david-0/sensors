@@ -23,4 +23,13 @@ public class TempHumidityPressure {
 	public Double getPressure() {
 		return pressure;
 	}
+
+	@Override
+	public String toString() {
+		return format(temp) + "C°, " + format(humidity) + "% rel, " + format(pressure) + "kPa";
+	}
+
+	private String format(Double value) {
+		return String.format("%.2f", value);
+	}
 }

@@ -6,12 +6,11 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.sensors.backend.sensor.handler.IntervalBasedSource;
-import org.sensors.backend.sensor.handler.StateUpdater;
 
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
 
-public class SensorIna219 implements IntervalBasedSource, StateUpdater {
+public class SensorIna219 implements IntervalBasedSource {
 
 	private static final float SHUNT_VOLTAGE_LSB = 10e-6f;
 	private static final float BUS_VOLTAGE_LSB_IN_MV = 4;
@@ -26,10 +25,8 @@ public class SensorIna219 implements IntervalBasedSource, StateUpdater {
 	private String id;
 	private String description;
 	private Duration interval;
-	private Consumer<Duration> onIntervalChangeListener;
 	private int frequencyInHz;
 	private AverageCalculator avgCalc = new AverageCalculator();
-	private Consumer<Integer> onFrequencyChangeListener;
 
 	public SensorIna219(I2CBus bus, int address, String id, String description) {
 		this(bus, address, id, description, Duration.ofMillis(5000));
@@ -169,51 +166,19 @@ public class SensorIna219 implements IntervalBasedSource, StateUpdater {
 		return interval;
 	}
 
-	private void setInterval(Duration interval) {
+	public void setInterval(Duration interval) {
 		this.interval = interval;
-		if (onIntervalChangeListener != null) {
-			onIntervalChangeListener.accept(interval);
-		}
 	}
 
-	@Override
-	public boolean onSettingChange(String key, String value) {
-		if (key.equals(id + "-intervalInMs")) {
-			setInterval(Duration.ofMillis(Integer.parseInt(value)));
-			return true;
-		} else if (key.equals(id + "-frequencyInHz")) {
-			setFrequencyInHz(Integer.parseInt(value));
-			return true;
-		}
-		return false;
-	}
-
-	@Override
 	public void updateState() {
 		avgCalc.add(getPowerInW());
 	}
 
-	@Override
 	public int getFrequencyInHz() {
 		return frequencyInHz;
 	}
 
-	private void setFrequencyInHz(int frequencyInHz) {
+	public void setFrequencyInHz(int frequencyInHz) {
 		this.frequencyInHz = frequencyInHz;
-		if (onFrequencyChangeListener != null) {
-			onFrequencyChangeListener.accept(Integer.valueOf(frequencyInHz));
-		}
 	}
-
-	@Override
-	public void setIntervalChangeListener(Consumer<Duration> listener) {
-		onIntervalChangeListener = listener;
-
-	}
-
-	@Override
-	public void setFrequencyChangeListener(Consumer<Integer> listener) {
-		onFrequencyChangeListener = listener;
-	}
-
 }

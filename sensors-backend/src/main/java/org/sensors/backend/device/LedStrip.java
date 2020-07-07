@@ -1,21 +1,5 @@
 package org.sensors.backend.device;
 
-import java.io.IOException;
-
-import org.sensors.api.AllLedChange;
-import org.sensors.api.BrightnessChange;
-import org.sensors.api.MultiLedChange;
-import org.sensors.api.OneLedChange;
-import org.sensors.api.json.mixin.AllLedChangeMixin;
-import org.sensors.api.json.mixin.BrightnessChangeMixin;
-import org.sensors.api.json.mixin.ColorMixin;
-import org.sensors.api.json.mixin.MultiLedChangeMixin;
-import org.sensors.api.json.mixin.OneLedChangeMixin;
-import org.sensors.backend.sensor.handler.ChangeEventListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.mbelling.ws281x.Color;
 import com.github.mbelling.ws281x.LedStripType;
 import com.github.mbelling.ws281x.Ws281xLedStrip;
@@ -36,24 +20,13 @@ import com.github.mbelling.ws281x.Ws281xLedStrip;
  * </ul>
  */
 
-public class LedStrip implements ChangeEventListener {
+public class LedStrip {
 
-	private static final Logger logger = LoggerFactory.getLogger(LedStrip.class);
-
-	private String id;
 	private int ledCount;
 	private Ws281xLedStrip leds;
-	private ObjectMapper mapper;
 
-	public LedStrip(String id, int ledCount) {
-		this.id = id;
+	public LedStrip(int ledCount) {
 		this.ledCount = ledCount;
-		mapper = new ObjectMapper();
-		mapper.addMixIn(Color.class, ColorMixin.class);
-		mapper.addMixIn(OneLedChange.class, OneLedChangeMixin.class);
-		mapper.addMixIn(AllLedChange.class, AllLedChangeMixin.class);
-		mapper.addMixIn(MultiLedChange.class, MultiLedChangeMixin.class);
-		mapper.addMixIn(BrightnessChange.class, BrightnessChangeMixin.class);
 	}
 
 	public LedStrip init() {
@@ -61,41 +34,16 @@ public class LedStrip implements ChangeEventListener {
 		return this;
 	}
 
-	@Override
-	public boolean onSettingChange(String key, String value) {
-		try {
-			if (key.startsWith(id + "-one-")) {
-				OneLedChange one = mapper.readValue(value, OneLedChange.class);
-				leds.setPixel(one.getNumber(), one.getColor());
-				leds.render();
-				return true;
-			}
-			if ((id + "-all").equals(key)) {
-				AllLedChange all = mapper.readValue(value, AllLedChange.class);
-				leds.setStrip(all.getColor());
-				leds.setBrightness(all.getBrightness());
-				leds.render();
-				return true;
-			}
-			if ((id + "-multi").equals(key)) {
-				MultiLedChange multi = mapper.readValue(value, MultiLedChange.class);
-				multi.getList().stream().forEach(o -> leds.setPixel(o.getNumber(), o.getColor()));
-				leds.render();
-				return true;
-			}
-			if ((id + "-brightness").equals(key)) {
-				BrightnessChange brightness = mapper.readValue(value, BrightnessChange.class);
-				leds.setBrightness(brightness.getBrightness());
-				if (brightness.isRender()) {
-					leds.render();
-				}
-				return true;
-			}
-			return false;
-		} catch (IOException e) {
-			logger.warn("ignore key: " + key + ", value: " + value, e);
-			return true;
-		}
+	public void onAll() {
+		leds.setStrip(new Color(255,255,255));
+		leds.setBrightness(255);
+		leds.render();
 	}
-
+	
+	public void offAll() {
+		leds.setStrip(new Color(255,255,255));
+//		leds.setPixel(one.getNumber(), one.getColor());
+		leds.setBrightness(0);
+		leds.render();
+	}
 }

@@ -6,19 +6,17 @@ import java.util.function.BiConsumer;
 
 import org.sensors.backend.sensor.handler.IntervalBasedSource;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 public class IntervalEvent extends Event {
 
 	private IntervalBasedSource source;
-	private BiConsumer<String, String> sender;
+	private BiConsumer<String, Object> sender;
 
-	public IntervalEvent(IntervalBasedSource source, ZonedDateTime start, BiConsumer<String, String> sender) {
+	public IntervalEvent(IntervalBasedSource source, ZonedDateTime start, BiConsumer<String, Object> sender) {
 		this(source, source.getInterval(), start, sender);
 	}
-	
-	private IntervalEvent(IntervalBasedSource source, Duration interval, ZonedDateTime start, BiConsumer<String, String> sender) {
+
+	private IntervalEvent(IntervalBasedSource source, Duration interval, ZonedDateTime start,
+			BiConsumer<String, Object> sender) {
 		super(source.getId(), start, interval);
 		this.source = source;
 		this.sender = sender;
@@ -26,12 +24,7 @@ public class IntervalEvent extends Event {
 
 	@Override
 	public void exec() {
-		try {
-			String json = new ObjectMapper().writeValueAsString(source.getDataProvider().get());
-			sender.accept(source.getId(), json);
-		} catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
+		sender.accept(source.getId(), source.getDataProvider().get());
 	}
 
 	@Override
