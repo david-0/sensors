@@ -34,9 +34,9 @@ public class LedStrip {
 		return this;
 	}
 
-	public void onAll() {
+	public void onAll(int brightness) {
 		leds.setStrip(new Color(255,255,255));
-		leds.setBrightness(255);
+		leds.setBrightness(brightness);
 		leds.render();
 	}
 	
