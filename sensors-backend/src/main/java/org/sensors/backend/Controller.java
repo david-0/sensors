@@ -19,14 +19,9 @@ public class Controller {
 	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
 	private final List<IntervalBasedSource> intervalBasedSources = new ArrayList<>();
-
 	private boolean initialized;
-
 	private EventStore store;
-
 	private Future<?> execEventsFuture;
-	private Future<?> consumeMessagesFuture;
-
 	private BiConsumer<String, Object> stateStore;
 
 	public Controller(BiConsumer<String, Object> stateStore) {
@@ -55,7 +50,6 @@ public class Controller {
 	public void waitMainThread() {
 		try {
 			execEventsFuture.get();
-			consumeMessagesFuture.get();
 		} catch (InterruptedException | ExecutionException e) {
 			throw new RuntimeException(e);
 		}
