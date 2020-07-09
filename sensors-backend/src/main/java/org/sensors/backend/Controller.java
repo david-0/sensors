@@ -9,11 +9,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 
-import org.sensors.backend.event.FrequencyEvent;
 import org.sensors.backend.event.IntervalEvent;
 import org.sensors.backend.sensor.handler.IntervalBasedSource;
-import org.sensors.backend.sensor.handler.StateUpdater;
-import org.sensors.logic.ButtonProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +19,6 @@ public class Controller {
 	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
 	private final List<IntervalBasedSource> intervalBasedSources = new ArrayList<>();
-	private final List<StateUpdater> stateUpdaterSources = new ArrayList<>();
 
 	private boolean initialized;
 
@@ -31,17 +27,11 @@ public class Controller {
 	private Future<?> execEventsFuture;
 	private Future<?> consumeMessagesFuture;
 
-	private List<ButtonProcessor> buttonProcessors;
 	private BiConsumer<String, Object> stateStore;
 
 	public Controller(BiConsumer<String, Object> stateStore) {
 		this.stateStore = stateStore;
 		store = new EventStore();
-		buttonProcessors = new ArrayList<ButtonProcessor>();
-	}
-	
-	public void addButtonProcessor(ButtonProcessor processor) {
-		buttonProcessors.add(processor);
 	}
 
 	public void addIntervalBasedSource(IntervalBasedSource source) {
@@ -49,21 +39,10 @@ public class Controller {
 		this.intervalBasedSources.add(source);
 	}
 
-	public void addStateUpdaterSource(StateUpdater source) {
-		ensureNotAlreadyInitialized();
-		this.stateUpdaterSources.add(source);
-	}
-
 	public void init() throws InterruptedException, ExecutionException {
 		ensureNotAlreadyInitialized();
 		for (IntervalBasedSource source : intervalBasedSources) {
 			store.addEvent(new IntervalEvent(source, ZonedDateTime.now(), (id, state) -> stateStore.accept(id, state)));
-//			source.setIntervalChangeListener(
-//					interval -> store.updateInterval(source.getId(), interval, ZonedDateTime.now()));
-		}
-		for (StateUpdater updater : stateUpdaterSources) {
-			store.addEvent(new FrequencyEvent(updater, ZonedDateTime.now()));
-			updater.setFrequencyChangeListener(frequencyInHz -> store.updateFrequency(updater.getId(), frequencyInHz));
 		}
 		initialized = true;
 	}

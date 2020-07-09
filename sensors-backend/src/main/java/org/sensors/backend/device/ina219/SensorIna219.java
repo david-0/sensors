@@ -2,7 +2,6 @@ package org.sensors.backend.device.ina219;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.sensors.backend.sensor.handler.IntervalBasedSource;

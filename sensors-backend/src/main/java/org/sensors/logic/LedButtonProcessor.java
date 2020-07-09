@@ -4,7 +4,7 @@ import org.sensors.backend.device.LedStrip;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LedButtonProcessor implements ButtonProcessor {
+public class LedButtonProcessor {
 	private static final Logger logger = LoggerFactory.getLogger(LedButtonProcessor.class);
 
 	private boolean stateBeforePressed = false;
@@ -36,7 +36,6 @@ public class LedButtonProcessor implements ButtonProcessor {
 		}
 	}
 
-	@Override
 	public void update(ButtonState state) {
 		logger.info("ledButtonChanged: " + state.name());
 		limiter.start();
