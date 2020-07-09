@@ -3,6 +3,7 @@ package org.sensors.backend.device;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.Pin;
+import com.pi4j.io.gpio.PinState;
 
 public class DigialOutputDevice {
 	private GpioController gpio;
@@ -22,8 +23,12 @@ public class DigialOutputDevice {
 	public void on() {
 		outputDevice.setState(true);
 	}
-	
+
 	public void off() {
 		outputDevice.setState(false);
+	}
+
+	public boolean isOn() {
+		return outputDevice.getState() == PinState.HIGH;
 	}
 }

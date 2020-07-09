@@ -15,8 +15,8 @@ import org.sensors.backend.device.SensorOneWireTemp;
 import org.sensors.backend.device.SensorSHT31d;
 import org.sensors.backend.device.WlanControlOutputDevice;
 import org.sensors.backend.device.ina219.SensorIna219;
-import org.sensors.logic.ButtonState;
 import org.sensors.logic.LedButtonProcessor;
+import org.sensors.logic.WlanButtonProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,20 +46,10 @@ public class App {
 			WlanControlOutputDevice wlanOutputDevice = new WlanControlOutputDevice();
 			
 			LedButtonProcessor ledButtonProcessor = new LedButtonProcessor(ledStripSchrank);
+			WlanButtonProcessor wlanButtonProcessor = new WlanButtonProcessor(wlanButtonLed, wlanOutputDevice);
 
 			ledButton.onChange(ledButtonProcessor::update);
-
-			wlanButton.onChange(state -> {
-				logger.info("wlanButtonChanged: " + state.name());
-				if (ButtonState.ON.equals(state)) {
-					wlanButtonLed.on();
-					wlanOutputDevice.switchWlanOff();
-				}
-				if (ButtonState.OFF.equals(state)) {
-					wlanButtonLed.off();
-					wlanOutputDevice.switchWlanOff();
-				}
-			});
+			wlanButton.onChange(wlanButtonProcessor::update);
 
 			StateStore stateStore = new StateStore();
 			Controller controller = new Controller((id, value) -> stateStore.update(id, value));
