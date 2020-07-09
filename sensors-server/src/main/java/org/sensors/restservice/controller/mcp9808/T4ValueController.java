@@ -11,8 +11,8 @@ public class T4ValueController {
 	@Autowired
 	private StateStore stateStore;
 	
-	@GetMapping("/t1/value")
+	@GetMapping("/t4/value")
 	public Float value() {
-		return stateStore.getFloatValue("T1-aussen");
+		return stateStore.getFloatValue("controller");
 	}
 }
