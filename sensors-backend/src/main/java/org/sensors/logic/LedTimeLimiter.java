@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 public class LedTimeLimiter {
 	
-	private static final Duration SWITCH_OFF_DELAY = Duration.ofSeconds(4);
+	private static final Duration SWITCH_OFF_DELAY = Duration.ofMinutes(2);
 
 	private ScheduledExecutorService executor;
 	private Optional<ScheduledFuture<?>> future = Optional.empty();
@@ -33,7 +33,7 @@ public class LedTimeLimiter {
 			future.ifPresent(this::cancel);
 			future = Optional.empty();
 		}
-	}	
+	}
 	
 	private void cancel(ScheduledFuture<?> future) {
 		future.cancel(false);
