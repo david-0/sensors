@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.sensors.backend.sensor.handler.IntervalBasedSource;
-import org.sensors.backend.to.TempHumidity;
+import org.sensors.to.TempHumidity;
 
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;

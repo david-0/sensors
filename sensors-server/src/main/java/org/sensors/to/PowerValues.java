@@ -1,13 +1,13 @@
-package org.sensors.backend.device.ina219;
+package org.sensors.to;
 
-public class Values {
+public class PowerValues {
 
 	private final Float busVoltage;
 	private final Float power;
 	private final Float current;
 	private final Float averagePowerPerSec;
 
-	public Values(Float busVoltage, Float power, Float current, Float averagePowerPerSec) {
+	public PowerValues(Float busVoltage, Float power, Float current, Float averagePowerPerSec) {
 		this.busVoltage = busVoltage;
 		this.power = power;
 		this.current = current;

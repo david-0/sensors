@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.util.function.Supplier;
 
 import org.sensors.backend.sensor.handler.IntervalBasedSource;
+import org.sensors.to.PowerValues;
 
 import com.pi4j.io.i2c.I2CBus;
 import com.pi4j.io.i2c.I2CDevice;
@@ -120,10 +121,10 @@ public class SensorIna219 implements IntervalBasedSource {
 		return val;
 	}
 
-	public Values readAll() {
+	public PowerValues readAll() {
 		avgCalc.add(readPowerInW());
 		Float avg = Float.valueOf((float) avgCalc.getAveragePerSecAndReset());
-		return new Values(readBusVoltageInW(), readPowerInW(), readCurrentInI(), avg);
+		return new PowerValues(readBusVoltageInW(), readPowerInW(), readCurrentInI(), avg);
 	}
 
 	public void writeRegister(final RegisterAddress ra, final int value) throws IOException {
@@ -151,7 +152,7 @@ public class SensorIna219 implements IntervalBasedSource {
 	}
 
 	@Override
-	public Supplier<Values> getDataProvider() {
+	public Supplier<PowerValues> getDataProvider() {
 		return this::readAll;
 	}
 

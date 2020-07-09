@@ -1,4 +1,4 @@
-package org.sensors.backend.to;
+package org.sensors.to;
 
 public class TempHumidity {
 
