@@ -2,9 +2,7 @@ package org.sensors.logic;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -12,10 +10,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class LedBrightnessFader {
+public class LedBrightnessDimmer {
 
 	private static final int MIN_VALUE = 1;
 	private static final int MAX_VALUE = 255;
@@ -24,29 +19,29 @@ public class LedBrightnessFader {
 
 	private Supplier<Integer> getBrightness;
 	private Consumer<Integer> setBrightness;
-	private boolean fadeDown = true;
+	private boolean dimmDown = true;
 
-	private ScheduledExecutorService faderExecutor;
-	private Optional<ScheduledFuture<?>> faderFuture = Optional.empty();
+	private ScheduledExecutorService executor;
+	private Optional<ScheduledFuture<?>> future = Optional.empty();
 	private Optional<ZonedDateTime> startTime = Optional.empty();
 
-	public LedBrightnessFader(Supplier<Integer> getBrightness, Consumer<Integer> setBrightness) {
+	public LedBrightnessDimmer(Supplier<Integer> getBrightness, Consumer<Integer> setBrightness) {
 		this.getBrightness = getBrightness;
 		this.setBrightness = setBrightness;
-		faderExecutor = Executors.newSingleThreadScheduledExecutor();
+		executor = Executors.newSingleThreadScheduledExecutor();
 	}
 
-	public void startFade() {
-		synchronized (faderExecutor) {
-			faderFuture.ifPresent(this::cancelAndWait);
+	public void start() {
+		synchronized (executor) {
+			future.ifPresent(this::cancel);
 			startTime = Optional.of(ZonedDateTime.now());
-			faderFuture = Optional.of(faderExecutor.scheduleAtFixedRate(this::fade, START_DELAY.toMillis(),
+			future = Optional.of(executor.scheduleAtFixedRate(this::dimm, START_DELAY.toMillis(),
 					REPETITION_DELAY.toMillis(), TimeUnit.MILLISECONDS));
 		}
 	}
 
-	public boolean isFaderStarted() {
-		synchronized (faderExecutor) {
+	public boolean isStarted() {
+		synchronized (executor) {
 			ZonedDateTime now = ZonedDateTime.now();
 			Boolean result = startTime //
 					.map(t -> t.plus(START_DELAY)) //
@@ -56,28 +51,28 @@ public class LedBrightnessFader {
 		}
 	}
 
-	public void stopFade() {
-		synchronized (faderExecutor) {
-			faderFuture.ifPresent(this::cancelAndWait);
-			faderFuture = Optional.empty();
+	public void stop() {
+		synchronized (executor) {
+			future.ifPresent(this::cancel);
+			future = Optional.empty();
 		}
 	}
 
-	private void cancelAndWait(ScheduledFuture<?> future) {
+	private void cancel(ScheduledFuture<?> future) {
 		future.cancel(false);
 		startTime = Optional.empty();
 	}
 
-	private void fade() {
-		if (fadeDown) {
+	private void dimm() {
+		if (dimmDown) {
 			if (getBrightness.get().intValue() == MIN_VALUE) {
-				fadeDown = false;
+				dimmDown = false;
 			} else {
 				setBrightness.accept(Integer.valueOf(getBrightness.get().intValue() - 1));
 			}
 		} else {
 			if (getBrightness.get().intValue() == MAX_VALUE) {
-				fadeDown = true;
+				dimmDown = true;
 			} else {
 				setBrightness.accept(Integer.valueOf(getBrightness.get().intValue() + 1));
 			}

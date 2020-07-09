@@ -12,11 +12,11 @@ public class LedButtonProcessor implements ButtonProcessor {
 	private int brightness = 255;
 	private LedStrip ledStrip;
 
-	private LedBrightnessFader fader;
+	private LedBrightnessDimmer dimmer;
 
 	public LedButtonProcessor(LedStrip ledStrip) {
 		this.ledStrip = ledStrip;
-		fader = new LedBrightnessFader(this::getBrightness, this::setBrightness);
+		dimmer = new LedBrightnessDimmer(this::getBrightness, this::setBrightness);
 	}
 
 	private int getBrightness() {
@@ -33,15 +33,15 @@ public class LedButtonProcessor implements ButtonProcessor {
 		logger.info("ledButtonChanged: " + state.name());
 		if (state.isContactClosed()) {
 			stateBeforePressed = on;
-			fader.startFade();
+			dimmer.start();
 			if (!on) {
 				on = true;
 			}
 		} else {
-			if (fader.isFaderStarted() && stateBeforePressed) {
+			if (dimmer.isStarted() && stateBeforePressed) {
 				on = false;
 			}
-			fader.stopFade();
+			dimmer.stop();
 		}
 		if (on) {
 			ledStrip.onAll(brightness);
