@@ -1,4 +1,4 @@
-package org.myprojects.sensors.restservice;
+package org.sensors.restservice;
 
 import java.util.Arrays;
 import java.util.List;

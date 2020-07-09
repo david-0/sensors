@@ -1,4 +1,4 @@
-package org.myprojects.sensors.restservice;
+package org.sensors.restservice;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;

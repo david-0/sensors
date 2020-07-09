@@ -1,4 +1,4 @@
-package org.myprojects.sensors;
+package org.sensors;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
