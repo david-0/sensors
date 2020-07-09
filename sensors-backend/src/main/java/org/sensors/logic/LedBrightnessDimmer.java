@@ -61,13 +61,13 @@ public class LedBrightnessDimmer {
 			if (getBrightness.get().intValue() == MIN_VALUE) {
 				dimmDown = false;
 			} else {
-				setBrightness.accept(Integer.valueOf(getBrightness.get().intValue() - 1));
+				setBrightness.accept(getBrightness.get() - 1);
 			}
 		} else {
 			if (getBrightness.get().intValue() == MAX_VALUE) {
 				dimmDown = true;
 			} else {
-				setBrightness.accept(Integer.valueOf(getBrightness.get().intValue() + 1));
+				setBrightness.accept(getBrightness.get() + 1);
 			}
 		}
 	}
