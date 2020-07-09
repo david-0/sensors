@@ -7,46 +7,52 @@ import org.slf4j.LoggerFactory;
 public class LedButtonProcessor implements ButtonProcessor {
 	private static final Logger logger = LoggerFactory.getLogger(LedButtonProcessor.class);
 
-	private boolean on = false;
 	private boolean stateBeforePressed = false;
 	private int brightness = 255;
 	private LedStrip ledStrip;
 
 	private LedBrightnessDimmer dimmer;
+	private LedTimeLimiter limiter;
 
 	public LedButtonProcessor(LedStrip ledStrip) {
 		this.ledStrip = ledStrip;
-		dimmer = new LedBrightnessDimmer(this::getBrightness, this::setBrightness);
+		dimmer = new LedBrightnessDimmer(this::getBrightness, this::dimmerSetBrightness);
+		limiter = new LedTimeLimiter(this::limiterSwitchOff);
 	}
 
 	private int getBrightness() {
 		return brightness;
 	}
-	
-	private void setBrightness(int brightness) {
+
+	private void dimmerSetBrightness(int brightness) {
 		this.brightness = brightness;
 		ledStrip.onAll(brightness);
+		limiter.stop();
 	}
 	
+	private void limiterSwitchOff() {
+		if (ledStrip.isOn()) {
+			ledStrip.offAll();
+		}
+	}
+
 	@Override
 	public void update(ButtonState state) {
 		logger.info("ledButtonChanged: " + state.name());
+		limiter.start();
 		if (state.isContactClosed()) {
-			stateBeforePressed = on;
+			stateBeforePressed = ledStrip.isOn();
 			dimmer.start();
-			if (!on) {
-				on = true;
+			if (!ledStrip.isOn()) {
+				ledStrip.onAll(brightness);
 			}
 		} else {
-			if (dimmer.isStarted() && stateBeforePressed) {
-				on = false;
-			}
+			boolean dimmerStarted = dimmer.isDimming();
 			dimmer.stop();
-		}
-		if (on) {
-			ledStrip.onAll(brightness);
-		} else {
-			ledStrip.offAll();
+			if (!dimmerStarted && stateBeforePressed) {
+				ledStrip.offAll();
+				limiter.stop();
+			}
 		}
 	}
 }

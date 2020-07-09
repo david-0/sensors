@@ -24,6 +24,7 @@ public class LedStrip {
 
 	private int ledCount;
 	private Ws281xLedStrip leds;
+	private int brightness = 0;
 
 	public LedStrip(int ledCount) {
 		this.ledCount = ledCount;
@@ -35,15 +36,21 @@ public class LedStrip {
 	}
 
 	public void onAll(int brightness) {
+		this.brightness = brightness;
 		leds.setStrip(new Color(255,255,255));
 		leds.setBrightness(brightness);
 		leds.render();
 	}
 	
 	public void offAll() {
+		brightness = 0;
 		leds.setStrip(new Color(255,255,255));
 //		leds.setPixel(one.getNumber(), one.getColor());
-		leds.setBrightness(0);
+		leds.setBrightness(brightness);
 		leds.render();
+	}
+
+	public boolean isOn() {
+		return brightness > 0;
 	}
 }
