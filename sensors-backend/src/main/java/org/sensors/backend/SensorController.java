@@ -14,9 +14,9 @@ import org.sensors.backend.sensor.handler.IntervalBasedSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Controller {
+public class SensorController {
 
-	private static final Logger logger = LoggerFactory.getLogger(Controller.class);
+	private static final Logger logger = LoggerFactory.getLogger(SensorController.class);
 
 	private final List<IntervalBasedSource> intervalBasedSources = new ArrayList<>();
 	private boolean initialized;
@@ -24,7 +24,7 @@ public class Controller {
 	private Future<?> execEventsFuture;
 	private BiConsumer<String, Object> stateStore;
 
-	public Controller(BiConsumer<String, Object> stateStore) {
+	public SensorController(BiConsumer<String, Object> stateStore) {
 		this.stateStore = stateStore;
 		store = new EventStore();
 	}

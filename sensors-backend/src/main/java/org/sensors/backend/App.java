@@ -52,7 +52,7 @@ public class App {
 			wlanButton.onChange(wlanButtonProcessor::update);
 
 			StateStore stateStore = new StateStore();
-			Controller controller = new Controller((id, value) -> stateStore.update(id, value));
+			SensorController controller = new SensorController((id, value) -> stateStore.update(id, value));
 			createMcp9808Sensors(bus).stream().forEach(controller::addIntervalBasedSource);
 			createIna219Sensors(bus).stream().forEach(controller::addIntervalBasedSource);
 			createOneWireSensors(master).stream().forEach(controller::addIntervalBasedSource);
