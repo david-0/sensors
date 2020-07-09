@@ -71,7 +71,7 @@ public class SensorApp {
 
 	public void stop() {
 		logger.info("controller stopping");
-		sensorController.stop();
+//		sensorController.stop();
 		sensorController.waitMainThread();
 		logger.info("controller stopped");
 	}
