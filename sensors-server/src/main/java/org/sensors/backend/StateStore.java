@@ -20,4 +20,8 @@ public class StateStore {
 	public String getLastState() {
 		return stateStore.toString();
 	}
+	
+	public Object getValue(String id) {
+		return stateStore.get(id);
+	}
  }
